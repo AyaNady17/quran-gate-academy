@@ -12,10 +12,12 @@ import 'package:quran_gate_academy/features/dashboard/presentation/pages/admin_d
 import 'package:quran_gate_academy/features/dashboard/presentation/pages/teacher_dashboard_page.dart';
 import 'package:quran_gate_academy/features/schedule/presentation/pages/schedule_page.dart';
 import 'package:quran_gate_academy/features/students/presentation/pages/students_page.dart';
+import 'package:quran_gate_academy/features/students/presentation/pages/student_form_page.dart';
 import 'package:quran_gate_academy/features/library/presentation/pages/library_page.dart';
 import 'package:quran_gate_academy/features/tasks/presentation/pages/tasks_page.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/pages/sessions_page.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/pages/session_form_page_enhanced.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/pages/teacher_sessions_page.dart';
 import 'package:quran_gate_academy/features/teachers/presentation/pages/teachers_page.dart';
 import 'package:quran_gate_academy/features/teachers/presentation/pages/teacher_form_page.dart';
 import 'package:quran_gate_academy/features/availability/presentation/pages/availability_page.dart';
@@ -31,6 +33,7 @@ class AppRouter {
   static const String libraryRoute = '/library';
   static const String tasksRoute = '/tasks';
   static const String sessionsRoute = '/sessions';
+  static const String mySessionsRoute = '/my-sessions';
   static const String teachersRoute = '/teachers';
   static const String availabilityRoute = '/availability';
   static const String unauthorizedRoute = '/unauthorized';
@@ -126,6 +129,19 @@ class AppRouter {
           name: 'students',
           builder: (context, state) => const StudentsPage(),
         ),
+        GoRoute(
+          path: '$studentsRoute/new',
+          name: 'student-create',
+          builder: (context, state) => const StudentFormPage(),
+        ),
+        GoRoute(
+          path: '$studentsRoute/edit/:id',
+          name: 'student-edit',
+          builder: (context, state) {
+            final studentId = state.pathParameters['id'];
+            return StudentFormPage(studentId: studentId);
+          },
+        ),
 
         // Library
         GoRoute(
@@ -194,6 +210,13 @@ class AppRouter {
           path: availabilityRoute,
           name: 'availability',
           builder: (context, state) => const AvailabilityPage(),
+        ),
+
+        // Teacher Sessions (Read-only view of assigned sessions)
+        GoRoute(
+          path: mySessionsRoute,
+          name: 'my-sessions',
+          builder: (context, state) => const TeacherSessionsPage(),
         ),
 
         // ============================================

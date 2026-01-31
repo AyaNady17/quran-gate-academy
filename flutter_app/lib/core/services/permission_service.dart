@@ -26,6 +26,7 @@ class PermissionService {
     AppRouter.libraryRoute,
     AppRouter.tasksRoute,
     '/availability', // Teacher-only availability management
+    '/my-sessions', // Teacher-only sessions view
     '/chat',
     '/policy',
   ];

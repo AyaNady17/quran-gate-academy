@@ -152,7 +152,14 @@ class AppSidebar extends StatelessWidget {
                 ],
 
                 // Teacher-only menu items
-                if (isTeacher)
+                if (isTeacher) ...[
+                  _MenuItem(
+                    icon: Icons.event_note_outlined,
+                    label: 'My Sessions',
+                    route: AppRouter.mySessionsRoute,
+                    isActive: currentRoute == AppRouter.mySessionsRoute,
+                    onTap: () => context.go(AppRouter.mySessionsRoute),
+                  ),
                   _MenuItem(
                     icon: Icons.calendar_month_outlined,
                     label: 'Availability',
@@ -160,6 +167,7 @@ class AppSidebar extends StatelessWidget {
                     isActive: currentRoute == AppRouter.availabilityRoute,
                     onTap: () => context.go(AppRouter.availabilityRoute),
                   ),
+                ],
 
                 _MenuItem(
                   icon: Icons.policy_outlined,
