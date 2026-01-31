@@ -26,8 +26,8 @@ class SessionsPage extends StatelessWidget {
     }
 
     return BlocProvider(
-      create: (context) => getIt<SessionCubit>(param1: authState.user)
-          ..loadSessions(),
+      create: (context) =>
+          getIt<SessionCubit>(param1: authState.user)..loadSessions(),
       child: const _SessionsView(),
     );
   }
@@ -133,15 +133,19 @@ class _SessionsViewState extends State<_SessionsView> {
               decoration: const InputDecoration(
                 labelText: 'Filter by Status',
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
               items: const [
                 DropdownMenuItem(value: null, child: Text('All Statuses')),
                 DropdownMenuItem(value: 'scheduled', child: Text('Scheduled')),
-                DropdownMenuItem(value: 'in_progress', child: Text('In Progress')),
+                DropdownMenuItem(
+                    value: 'in_progress', child: Text('In Progress')),
                 DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                DropdownMenuItem(value: 'teacher_cancel', child: Text('Teacher Cancelled')),
-                DropdownMenuItem(value: 'student_cancel', child: Text('Student Cancelled')),
+                DropdownMenuItem(
+                    value: 'teacher_cancel', child: Text('Teacher Cancelled')),
+                DropdownMenuItem(
+                    value: 'student_cancel', child: Text('Student Cancelled')),
               ],
               onChanged: (value) {
                 setState(() {
@@ -209,24 +213,49 @@ class _SessionsViewState extends State<_SessionsView> {
   Widget _buildSessionsTable(List<ClassSessionModel> sessions) {
     return Card(
       elevation: 2,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        child: DataTable(
-          headingRowColor: WidgetStateProperty.all(
-            AppTheme.primaryColor.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Scrollbar(
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowColor: WidgetStateProperty.all(
+                AppTheme.primaryColor.withOpacity(0.05),
+              ),
+              columnSpacing: 24,
+              horizontalMargin: 24,
+              columns: const [
+                DataColumn(
+                    label: Text('Date',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Time',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Teacher',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Student',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Duration',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Salary',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Status',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                DataColumn(
+                    label: Text('Actions',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+              ],
+              rows:
+                  sessions.map((session) => _buildSessionRow(session)).toList(),
+            ),
           ),
-          columns: const [
-            DataColumn(label: Text('Date')),
-            DataColumn(label: Text('Time')),
-            DataColumn(label: Text('Teacher')),
-            DataColumn(label: Text('Student')),
-            DataColumn(label: Text('Duration')),
-            DataColumn(label: Text('Salary')),
-            DataColumn(label: Text('Status')),
-            DataColumn(label: Text('Actions')),
-          ],
-          rows: sessions.map((session) => _buildSessionRow(session)).toList(),
         ),
       ),
     );
@@ -237,8 +266,50 @@ class _SessionsViewState extends State<_SessionsView> {
       cells: [
         DataCell(Text(_dateFormat.format(session.scheduledDate))),
         DataCell(Text(session.scheduledTime)),
-        DataCell(Text(session.teacherId)), // TODO: Fetch teacher name
-        DataCell(Text(session.studentId)), // TODO: Fetch student name
+        DataCell(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                child: Text(
+                  (session.teacherName ?? session.teacherId)
+                      .substring(0, 1)
+                      .toUpperCase(),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(session.teacherName ?? session.teacherId),
+            ],
+          ),
+        ),
+        DataCell(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: Colors.blue.withOpacity(0.1),
+                child: Text(
+                  (session.studentName ?? session.studentId)
+                      .substring(0, 1)
+                      .toUpperCase(),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(session.studentName ?? session.studentId),
+            ],
+          ),
+        ),
         DataCell(Text('${session.duration} min')),
         DataCell(Text('\$${session.salaryAmount.toStringAsFixed(2)}')),
         DataCell(_buildStatusChip(session.status)),
@@ -247,18 +318,21 @@ class _SessionsViewState extends State<_SessionsView> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.edit, size: 18),
+                icon: const Icon(Icons.edit_outlined,
+                    size: 20, color: Colors.blue),
                 tooltip: 'Edit',
                 onPressed: () => _navigateToEditSession(context, session),
               ),
               IconButton(
-                icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                icon: const Icon(Icons.delete_outline,
+                    size: 20, color: Colors.red),
                 tooltip: 'Delete',
                 onPressed: () => _confirmDeleteSession(context, session),
               ),
               if (session.status == 'scheduled')
                 IconButton(
-                  icon: const Icon(Icons.check_circle, size: 18, color: Colors.green),
+                  icon: const Icon(Icons.check_circle_outline,
+                      size: 20, color: Colors.green),
                   tooltip: 'Mark Complete',
                   onPressed: () => _markSessionCompleted(context, session),
                 ),
@@ -398,7 +472,8 @@ class _SessionsViewState extends State<_SessionsView> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Session'),
-        content: const Text('Are you sure you want to delete this session? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this session? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),

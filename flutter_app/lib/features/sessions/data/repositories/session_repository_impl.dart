@@ -67,10 +67,11 @@ class SessionRepositoryImpl implements SessionRepository {
   }) async {
     try {
       // Check if user is admin
-      final isAdmin = currentUser != null && PermissionService.isAdmin(currentUser);
+      final isAdmin =
+          currentUser != null && PermissionService.isAdmin(currentUser);
 
       // For teachers, force their own teacherId
-      final effectiveTeacherId = isAdmin ? teacherId : currentUser?.userId;
+      final effectiveTeacherId = isAdmin ? teacherId : currentUser?.id;
 
       final sessionsData = await sessionService.getAllSessions(
         teacherId: effectiveTeacherId,
@@ -82,7 +83,9 @@ class SessionRepositoryImpl implements SessionRepository {
         isAdminRequest: isAdmin,
       );
 
-      return sessionsData.map((data) => ClassSessionModel.fromJson(data)).toList();
+      return sessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get all sessions: $e');
     }
@@ -148,10 +151,11 @@ class SessionRepositoryImpl implements SessionRepository {
   }) async {
     try {
       // Check if user is admin
-      final isAdmin = currentUser != null && PermissionService.isAdmin(currentUser);
+      final isAdmin =
+          currentUser != null && PermissionService.isAdmin(currentUser);
 
       // For teachers, force their own teacherId
-      final effectiveTeacherId = isAdmin ? teacherId : currentUser?.userId;
+      final effectiveTeacherId = isAdmin ? teacherId : currentUser?.id;
 
       final sessionsData = await sessionService.getSessionsByDateRange(
         startDate: startDate,
@@ -161,7 +165,9 @@ class SessionRepositoryImpl implements SessionRepository {
         isAdminRequest: isAdmin,
       );
 
-      return sessionsData.map((data) => ClassSessionModel.fromJson(data)).toList();
+      return sessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get sessions by date range: $e');
     }
@@ -214,10 +220,11 @@ class SessionRepositoryImpl implements SessionRepository {
   }) async {
     try {
       // Check if user is admin
-      final isAdmin = currentUser != null && PermissionService.isAdmin(currentUser);
+      final isAdmin =
+          currentUser != null && PermissionService.isAdmin(currentUser);
 
       // For teachers, force their own teacherId
-      final effectiveTeacherId = isAdmin ? teacherId : currentUser?.userId;
+      final effectiveTeacherId = isAdmin ? teacherId : currentUser?.id;
 
       final sessionsData = await sessionService.getUpcomingSessions(
         teacherId: effectiveTeacherId,
@@ -226,7 +233,9 @@ class SessionRepositoryImpl implements SessionRepository {
         isAdminRequest: isAdmin,
       );
 
-      return sessionsData.map((data) => ClassSessionModel.fromJson(data)).toList();
+      return sessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get upcoming sessions: $e');
     }
