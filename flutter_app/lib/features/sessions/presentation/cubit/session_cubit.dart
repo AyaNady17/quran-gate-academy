@@ -1,15 +1,22 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quran_gate_academy/core/models/user_model.dart';
+import 'package:quran_gate_academy/core/utils/name_cache.dart';
 import 'package:quran_gate_academy/features/sessions/domain/repositories/session_repository.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_state.dart';
+import 'package:quran_gate_academy/features/students/domain/repositories/student_repository.dart';
+import 'package:quran_gate_academy/features/teachers/domain/repositories/teacher_repository.dart';
 
 /// Session Cubit - Manages session state and business logic
 class SessionCubit extends Cubit<SessionState> {
   final SessionRepository sessionRepository;
+  final TeacherRepository teacherRepository;
+  final StudentRepository studentRepository;
   final UserModel currentUser;
 
   SessionCubit({
     required this.sessionRepository,
+    required this.teacherRepository,
+    required this.studentRepository,
     required this.currentUser,
   }) : super(SessionInitial());
 
@@ -31,7 +38,54 @@ class SessionCubit extends Cubit<SessionState> {
         startDate: startDate,
         endDate: endDate,
       );
-      emit(SessionsLoaded(sessions));
+
+      if (sessions.isEmpty) {
+        emit(const SessionsLoaded([]));
+        return;
+      }
+
+      // Check if we need to fetch any missing names
+      final missingTeacherIds = sessions
+          .map((s) => s.teacherId)
+          .where((id) => !NameCache.hasTeacher(id))
+          .toSet();
+      final missingStudentIds = sessions
+          .map((s) => s.studentId)
+          .where((id) => !NameCache.hasStudent(id))
+          .toSet();
+
+      if (missingTeacherIds.isNotEmpty || missingStudentIds.isNotEmpty) {
+        // Fetch missing data
+        // For now, we still fetch all to simplify, but we only do it if something is missing
+        // A more optimized approach would be batch-fetching specific IDs
+        final results = await Future.wait([
+          teacherRepository.getAllTeachers(),
+          studentRepository.getAllStudents(),
+        ]);
+
+        final allTeachers = results[0] as List;
+        final allStudents = results[1] as List;
+
+        // Update caches
+        for (var t in allTeachers) {
+          NameCache.cacheTeacherName(t.id, t.fullName);
+        }
+        for (var s in allStudents) {
+          NameCache.cacheStudentName(s.id, s.fullName);
+        }
+      }
+
+      // Populate sessions with names from cache
+      final populatedSessions = sessions.map((session) {
+        return session.copyWith(
+          teacherName:
+              NameCache.getTeacherName(session.teacherId) ?? 'Unknown Teacher',
+          studentName:
+              NameCache.getStudentName(session.studentId) ?? 'Unknown Student',
+        );
+      }).toList();
+
+      emit(SessionsLoaded(populatedSessions));
     } catch (e) {
       emit(SessionError('Failed to load sessions: ${e.toString()}'));
     }
@@ -150,7 +204,8 @@ class SessionCubit extends Cubit<SessionState> {
       );
       emit(SessionUpdated(session));
     } catch (e) {
-      emit(SessionError('Failed to mark session as completed: ${e.toString()}'));
+      emit(
+          SessionError('Failed to mark session as completed: ${e.toString()}'));
     }
   }
 

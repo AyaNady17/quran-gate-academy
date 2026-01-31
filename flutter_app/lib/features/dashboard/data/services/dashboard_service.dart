@@ -116,7 +116,8 @@ class DashboardService {
     try {
       final now = DateTime.now();
       final weekStart = now.subtract(Duration(days: now.weekday % 7));
-      final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
+      final weekStartDate =
+          DateTime(weekStart.year, weekStart.month, weekStart.day);
       final weekEnd = weekStartDate.add(const Duration(days: 7));
 
       final response = await databases.listDocuments(
@@ -124,7 +125,8 @@ class DashboardService {
         collectionId: AppConfig.classSessionsCollectionId,
         queries: [
           Query.equal('teacherId', teacherId),
-          Query.greaterThanEqual('scheduledDate', weekStartDate.toIso8601String()),
+          Query.greaterThanEqual(
+              'scheduledDate', weekStartDate.toIso8601String()),
           Query.lessThan('scheduledDate', weekEnd.toIso8601String()),
         ],
       );
@@ -132,6 +134,31 @@ class DashboardService {
       return response.documents.map((doc) => doc.data).toList();
     } on AppwriteException catch (e) {
       throw Exception('Failed to fetch weekly sessions: ${e.message}');
+    }
+  }
+
+  /// Fetch sessions for a teacher in a specific date range
+  Future<List<Map<String, dynamic>>> getSessionsByDateRange({
+    required String teacherId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final response = await databases.listDocuments(
+        databaseId: AppConfig.appwriteDatabaseId,
+        collectionId: AppConfig.classSessionsCollectionId,
+        queries: [
+          Query.equal('teacherId', teacherId),
+          Query.greaterThanEqual('scheduledDate', startDate.toIso8601String()),
+          Query.lessThanEqual('scheduledDate', endDate.toIso8601String()),
+          Query.orderAsc('scheduledDate'),
+          Query.orderAsc('scheduledTime'),
+        ],
+      );
+
+      return response.documents.map((doc) => doc.data).toList();
+    } on AppwriteException catch (e) {
+      throw Exception('Failed to fetch sessions by date range: ${e.message}');
     }
   }
 

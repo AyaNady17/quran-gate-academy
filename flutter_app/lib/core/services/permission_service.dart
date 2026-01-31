@@ -108,7 +108,7 @@ class PermissionService {
     if (isAdmin(user)) return true;
 
     // Teachers can only access their own data
-    if (isTeacher(user)) return user.userId == teacherId;
+    if (isTeacher(user)) return user.id == teacherId;
 
     return false;
   }
@@ -135,7 +135,7 @@ class PermissionService {
     if (isAdmin(user)) return true;
 
     // Teachers can only access their own sessions
-    if (isTeacher(user)) return user.userId == sessionTeacherId;
+    if (isTeacher(user)) return user.id == sessionTeacherId;
 
     return false;
   }
@@ -150,7 +150,7 @@ class PermissionService {
     if (isAdmin(user)) return true;
 
     // Teachers can only mark their own sessions complete
-    if (isTeacher(user)) return user.userId == sessionTeacherId;
+    if (isTeacher(user)) return user.id == sessionTeacherId;
 
     return false;
   }
@@ -161,7 +161,7 @@ class PermissionService {
     if (isAdmin(user)) return true;
 
     // Teachers can request to cancel their own sessions
-    if (isTeacher(user)) return user.userId == sessionTeacherId;
+    if (isTeacher(user)) return user.id == sessionTeacherId;
 
     return false;
   }

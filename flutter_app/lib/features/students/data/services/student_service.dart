@@ -20,6 +20,9 @@ class StudentService {
 
       if (status != null) {
         queries.add(Query.equal('status', status));
+      } else {
+        // By default, don't show inactive (deleted) students
+        queries.add(Query.notEqual('status', 'inactive'));
       }
 
       final response = await databases.listDocuments(

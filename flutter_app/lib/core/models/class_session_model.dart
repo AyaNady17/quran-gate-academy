@@ -5,12 +5,15 @@ class ClassSessionModel extends Equatable {
   final String id;
   final String teacherId;
   final String studentId;
+  final String? teacherName;
+  final String? studentName;
   final String courseId;
   final String? planId;
   final DateTime scheduledDate;
   final String scheduledTime; // e.g., "19:00"
   final int duration; // minutes
-  final String status; // 'scheduled', 'completed', 'absent', 'student_cancel', 'teacher_cancel'
+  final String
+      status; // 'scheduled', 'completed', 'absent', 'student_cancel', 'teacher_cancel'
   final String? attendanceStatus; // 'present', 'absent', 'late'
   final double salaryAmount;
   final String? notes;
@@ -24,7 +27,9 @@ class ClassSessionModel extends Equatable {
   const ClassSessionModel({
     required this.id,
     required this.teacherId,
+    this.teacherName,
     required this.studentId,
+    this.studentName,
     required this.courseId,
     this.planId,
     required this.scheduledDate,
@@ -46,7 +51,9 @@ class ClassSessionModel extends Equatable {
     return ClassSessionModel(
       id: json['\$id'] ?? '',
       teacherId: json['teacherId'] ?? '',
+      teacherName: json['teacherName'],
       studentId: json['studentId'] ?? '',
+      studentName: json['studentName'],
       courseId: json['courseId'] ?? '',
       planId: json['planId'],
       scheduledDate: DateTime.parse(json['scheduledDate']),
@@ -59,16 +66,21 @@ class ClassSessionModel extends Equatable {
       meetingLink: json['meetingLink'],
       createdBy: json['createdBy'],
       rescheduleRequestId: json['rescheduleRequestId'],
-      completedAt: json['completedAt'] != null ? DateTime.parse(json['completedAt']) : null,
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'])
+          : null,
       createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'teacherId': teacherId,
+      if (teacherName != null) 'teacherName': teacherName,
       'studentId': studentId,
+      if (studentName != null) 'studentName': studentName,
       'courseId': courseId,
       'planId': planId,
       'scheduledDate': scheduledDate.toIso8601String(),
@@ -90,7 +102,9 @@ class ClassSessionModel extends Equatable {
   ClassSessionModel copyWith({
     String? id,
     String? teacherId,
+    String? teacherName,
     String? studentId,
+    String? studentName,
     String? courseId,
     String? planId,
     DateTime? scheduledDate,
@@ -110,7 +124,9 @@ class ClassSessionModel extends Equatable {
     return ClassSessionModel(
       id: id ?? this.id,
       teacherId: teacherId ?? this.teacherId,
+      teacherName: teacherName ?? this.teacherName,
       studentId: studentId ?? this.studentId,
+      studentName: studentName ?? this.studentName,
       courseId: courseId ?? this.courseId,
       planId: planId ?? this.planId,
       scheduledDate: scheduledDate ?? this.scheduledDate,
@@ -133,7 +149,9 @@ class ClassSessionModel extends Equatable {
   List<Object?> get props => [
         id,
         teacherId,
+        teacherName,
         studentId,
+        studentName,
         courseId,
         planId,
         scheduledDate,

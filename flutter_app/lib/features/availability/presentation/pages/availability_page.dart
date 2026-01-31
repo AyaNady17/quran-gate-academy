@@ -24,7 +24,7 @@ class AvailabilityPage extends StatelessWidget {
 
     return BlocProvider(
       create: (context) => getIt<AvailabilityCubit>()
-          ..loadAvailability(teacherId: authState.user.userId),
+        ..loadAvailability(teacherId: authState.user.id),
       child: const _AvailabilityView(),
     );
   }
@@ -109,7 +109,7 @@ class _AvailabilityView extends StatelessWidget {
                   if (authState is AuthAuthenticated) {
                     context
                         .read<AvailabilityCubit>()
-                        .loadAvailability(teacherId: authState.user.userId);
+                        .loadAvailability(teacherId: authState.user.id);
                   }
                 },
                 icon: const Icon(Icons.refresh),
@@ -137,7 +137,7 @@ class _AvailabilityView extends StatelessWidget {
           if (authState is AuthAuthenticated) {
             context
                 .read<AvailabilityCubit>()
-                .loadAvailability(teacherId: authState.user.userId);
+                .loadAvailability(teacherId: authState.user.id);
           }
         } else if (state is AvailabilitySlotDeleted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -151,7 +151,7 @@ class _AvailabilityView extends StatelessWidget {
           if (authState is AuthAuthenticated) {
             context
                 .read<AvailabilityCubit>()
-                .loadAvailability(teacherId: authState.user.userId);
+                .loadAvailability(teacherId: authState.user.id);
           }
         } else if (state is AvailabilityError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -186,7 +186,7 @@ class _AvailabilityView extends StatelessWidget {
                     if (authState is AuthAuthenticated) {
                       context
                           .read<AvailabilityCubit>()
-                          .loadAvailability(teacherId: authState.user.userId);
+                          .loadAvailability(teacherId: authState.user.id);
                     }
                   },
                   child: const Text('Retry'),
@@ -206,8 +206,7 @@ class _AvailabilityView extends StatelessWidget {
     // Group slots by day of week
     final slotsByDay = <String, List<AvailabilityModel>>{};
     for (final day in _daysOfWeek) {
-      slotsByDay[day] =
-          slots.where((slot) => slot.dayOfWeek == day).toList();
+      slotsByDay[day] = slots.where((slot) => slot.dayOfWeek == day).toList();
     }
 
     return SingleChildScrollView(
@@ -263,7 +262,8 @@ class _AvailabilityView extends StatelessWidget {
                 label: const Text('Add Slot'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
               ),
             ],
@@ -281,7 +281,8 @@ class _AvailabilityView extends StatelessWidget {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: slots.map((slot) => _buildSlotChip(context, slot)).toList(),
+              children:
+                  slots.map((slot) => _buildSlotChip(context, slot)).toList(),
             ),
         ],
       ),
@@ -337,7 +338,7 @@ class _AvailabilityView extends StatelessWidget {
               final authState = context.read<AuthCubit>().state;
               if (authState is AuthAuthenticated) {
                 context.read<AvailabilityCubit>().createSlot(
-                      teacherId: authState.user.userId,
+                      teacherId: authState.user.id,
                       dayOfWeek: day,
                       startTime: startTimeController.text,
                       endTime: endTimeController.text,

@@ -12,13 +12,20 @@ class DashboardRepositoryImpl implements DashboardRepository {
   Future<DashboardStats> getDashboardStats({required String teacherId}) async {
     try {
       // Fetch all sessions and completed sessions
-      final allSessionsData = await dashboardService.getTeacherSessions(teacherId: teacherId);
-      final completedSessionsData = await dashboardService.getCompletedSessions(teacherId: teacherId);
-      final todaySessionsData = await dashboardService.getTodaySessions(teacherId: teacherId);
+      final allSessionsData =
+          await dashboardService.getTeacherSessions(teacherId: teacherId);
+      final completedSessionsData =
+          await dashboardService.getCompletedSessions(teacherId: teacherId);
+      final todaySessionsData =
+          await dashboardService.getTodaySessions(teacherId: teacherId);
 
       // Convert to models
-      final allSessions = allSessionsData.map((data) => ClassSessionModel.fromJson(data)).toList();
-      final completedSessions = completedSessionsData.map((data) => ClassSessionModel.fromJson(data)).toList();
+      final allSessions = allSessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
+      final completedSessions = completedSessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
 
       // Calculate total hours
       final totalMinutes = completedSessions.fold<int>(
@@ -36,9 +43,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
       // Calculate attendance percentage
       final totalSessions = allSessions.length;
       final completedCount = completedSessions.length;
-      final attendancePercentage = totalSessions > 0
-          ? (completedCount / totalSessions) * 100
-          : 0.0;
+      final attendancePercentage =
+          totalSessions > 0 ? (completedCount / totalSessions) * 100 : 0.0;
 
       return DashboardStats(
         totalHours: totalHours,
@@ -54,32 +60,64 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<List<ClassSessionModel>> getTodaySessions({required String teacherId}) async {
+  Future<List<ClassSessionModel>> getTodaySessions(
+      {required String teacherId}) async {
     try {
-      final sessionsData = await dashboardService.getTodaySessions(teacherId: teacherId);
-      return sessionsData.map((data) => ClassSessionModel.fromJson(data)).toList();
+      final sessionsData =
+          await dashboardService.getTodaySessions(teacherId: teacherId);
+      return sessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get today\'s sessions: $e');
     }
   }
 
   @override
-  Future<List<ClassSessionModel>> getWeeklySessions({required String teacherId}) async {
+  Future<List<ClassSessionModel>> getWeeklySessions(
+      {required String teacherId}) async {
     try {
-      final sessionsData = await dashboardService.getWeeklySessions(teacherId: teacherId);
-      return sessionsData.map((data) => ClassSessionModel.fromJson(data)).toList();
+      final sessionsData =
+          await dashboardService.getWeeklySessions(teacherId: teacherId);
+      return sessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get weekly sessions: $e');
     }
   }
 
   @override
-  Future<List<ClassSessionModel>> getMonthlySessions({required String teacherId}) async {
+  Future<List<ClassSessionModel>> getMonthlySessions(
+      {required String teacherId}) async {
     try {
-      final sessionsData = await dashboardService.getMonthlySessions(teacherId: teacherId);
-      return sessionsData.map((data) => ClassSessionModel.fromJson(data)).toList();
+      final sessionsData =
+          await dashboardService.getMonthlySessions(teacherId: teacherId);
+      return sessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get monthly sessions: $e');
+    }
+  }
+
+  @override
+  Future<List<ClassSessionModel>> getSessionsByDateRange({
+    required String teacherId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final sessionsData = await dashboardService.getSessionsByDateRange(
+        teacherId: teacherId,
+        startDate: startDate,
+        endDate: endDate,
+      );
+      return sessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get sessions by date range: $e');
     }
   }
 
@@ -89,7 +127,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
       final sessionsData = await dashboardService.getAllSessions(
         isAdminRequest: true,
       );
-      return sessionsData.map((data) => ClassSessionModel.fromJson(data)).toList();
+      return sessionsData
+          .map((data) => ClassSessionModel.fromJson(data))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get all sessions: $e');
     }

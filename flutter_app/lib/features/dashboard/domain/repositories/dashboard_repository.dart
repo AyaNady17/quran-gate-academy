@@ -28,10 +28,19 @@ abstract class DashboardRepository {
   Future<List<ClassSessionModel>> getTodaySessions({required String teacherId});
 
   /// Get weekly sessions for a teacher
-  Future<List<ClassSessionModel>> getWeeklySessions({required String teacherId});
+  Future<List<ClassSessionModel>> getWeeklySessions(
+      {required String teacherId});
 
   /// Get monthly sessions for a teacher
-  Future<List<ClassSessionModel>> getMonthlySessions({required String teacherId});
+  Future<List<ClassSessionModel>> getMonthlySessions(
+      {required String teacherId});
+
+  /// Get sessions for a teacher in a specific date range
+  Future<List<ClassSessionModel>> getSessionsByDateRange({
+    required String teacherId,
+    required DateTime startDate,
+    required DateTime endDate,
+  });
 
   /// Get all sessions (for admin)
   Future<List<ClassSessionModel>> getAllSessions();
