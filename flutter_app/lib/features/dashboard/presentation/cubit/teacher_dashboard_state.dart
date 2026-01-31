@@ -20,15 +20,25 @@ class TeacherDashboardLoaded extends TeacherDashboardState {
   final TeacherDashboardStats stats;
   final List<ClassSessionModel> todaySessions;
   final List<ClassSessionModel> upcomingSessions;
+  final DateTime? searchStartDate;
+  final DateTime? searchEndDate;
 
   const TeacherDashboardLoaded({
     required this.stats,
     required this.todaySessions,
     required this.upcomingSessions,
+    this.searchStartDate,
+    this.searchEndDate,
   });
 
   @override
-  List<Object?> get props => [stats, todaySessions, upcomingSessions];
+  List<Object?> get props => [
+        stats,
+        todaySessions,
+        upcomingSessions,
+        searchStartDate,
+        searchEndDate,
+      ];
 }
 
 /// Error state

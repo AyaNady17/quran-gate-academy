@@ -19,10 +19,10 @@ class TeacherDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        final authState = context.read<AuthCubit>().state;
         final cubit = getIt<TeacherDashboardCubit>();
+        final authState = context.read<AuthCubit>().state;
         if (authState is AuthAuthenticated) {
-          cubit.loadDashboard(teacherId: authState.user.userId);
+          cubit.loadDashboard(teacherId: authState.user.id);
         }
         return cubit;
       },
@@ -31,8 +31,81 @@ class TeacherDashboardPage extends StatelessWidget {
   }
 }
 
-class _TeacherDashboardContent extends StatelessWidget {
+class _TeacherDashboardContent extends StatefulWidget {
   const _TeacherDashboardContent();
+
+  @override
+  State<_TeacherDashboardContent> createState() =>
+      _TeacherDashboardContentState();
+}
+
+class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
+  DateTime? _startDate;
+  DateTime? _endDate;
+  final _dateController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final cubitState = context.read<TeacherDashboardCubit>().state;
+    if (cubitState is TeacherDashboardLoaded) {
+      _startDate = cubitState.searchStartDate;
+      _endDate = cubitState.searchEndDate;
+      if (_startDate != null) {
+        if (_startDate == _endDate || _endDate == null) {
+          _dateController.text = DateFormat('MM/dd/yyyy').format(_startDate!);
+        } else {
+          _dateController.text =
+              '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}';
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _dateController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDateRange(BuildContext context) async {
+    final initialDateRange = _startDate != null && _endDate != null
+        ? DateTimeRange(start: _startDate!, end: _endDate!)
+        : null;
+
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      initialDateRange: initialDateRange,
+    );
+
+    if (picked != null) {
+      setState(() {
+        _startDate = picked.start;
+        _endDate = picked.end;
+        if (_startDate == _endDate) {
+          _dateController.text = DateFormat('MM/dd/yyyy').format(_startDate!);
+        } else {
+          _dateController.text =
+              '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}';
+        }
+      });
+    }
+  }
+
+  void _search(BuildContext context) {
+    if (_startDate == null) return;
+
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthAuthenticated) {
+      context.read<TeacherDashboardCubit>().searchSessionsByDate(
+            teacherId: authState.user.id,
+            startDate: _startDate!,
+            endDate: _endDate,
+          );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +136,7 @@ class _TeacherDashboardContent extends StatelessWidget {
                       final authState = context.read<AuthCubit>().state;
                       if (authState is AuthAuthenticated) {
                         context.read<TeacherDashboardCubit>().refreshDashboard(
-                              teacherId: authState.user.userId,
+                              teacherId: authState.user.id,
                             );
                       }
                     },
@@ -78,8 +151,13 @@ class _TeacherDashboardContent extends StatelessWidget {
                           _buildStatsGrid(state.stats),
                           const SizedBox(height: 32),
                           _buildSalaryCard(context, state.stats),
-                          const SizedBox(height: 32),
-                          _buildTodaySessions(context, state.todaySessions),
+                          // Today's Classes Section
+                          _buildTodaySessions(
+                            context,
+                            state.todaySessions,
+                            state.searchStartDate,
+                            state.searchEndDate,
+                          ),
                           const SizedBox(height: 32),
                           _buildUpcomingSessions(
                               context, state.upcomingSessions),
@@ -115,7 +193,7 @@ class _TeacherDashboardContent extends StatelessWidget {
                               context
                                   .read<TeacherDashboardCubit>()
                                   .loadDashboard(
-                                    teacherId: authState.user.userId,
+                                    teacherId: authState.user.id,
                                   );
                             }
                           },
@@ -125,6 +203,16 @@ class _TeacherDashboardContent extends StatelessWidget {
                       ],
                     ),
                   );
+                }
+
+                if (state is TeacherDashboardInitial) {
+                  final authState = context.read<AuthCubit>().state;
+                  if (authState is AuthAuthenticated) {
+                    context
+                        .read<TeacherDashboardCubit>()
+                        .loadDashboard(teacherId: authState.user.id);
+                  }
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 return const SizedBox.shrink();
@@ -270,7 +358,24 @@ class _TeacherDashboardContent extends StatelessWidget {
   }
 
   Widget _buildTodaySessions(
-      BuildContext context, List<ClassSessionModel> sessions) {
+      BuildContext context,
+      List<ClassSessionModel> sessions,
+      DateTime? searchStart,
+      DateTime? searchEnd) {
+    String title = 'Today\'s Classes';
+    if (searchStart != null) {
+      final startStr = DateFormat('MMM dd, yyyy').format(searchStart);
+      if (searchEnd == null ||
+          (searchStart.year == searchEnd.year &&
+              searchStart.month == searchEnd.month &&
+              searchStart.day == searchEnd.day)) {
+        title = 'Classes for $startStr';
+      } else {
+        final endStr = DateFormat('MMM dd, yyyy').format(searchEnd);
+        title = 'Classes: $startStr - $endStr';
+      }
+    }
+
     return Card(
       elevation: 2,
       child: Padding(
@@ -278,24 +383,81 @@ class _TeacherDashboardContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Today\'s Classes',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const Spacer(),
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: _dateController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      hintText: 'MM/DD/YYYY',
+                      prefixIcon: const Icon(Icons.calendar_today),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12),
+                      border: const OutlineInputBorder(),
+                      suffixIcon: _startDate != null
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                setState(() {
+                                  _startDate = null;
+                                  _endDate = null;
+                                  _dateController.clear();
+                                });
+                                final authState =
+                                    context.read<AuthCubit>().state;
+                                if (authState is AuthAuthenticated) {
+                                  context
+                                      .read<TeacherDashboardCubit>()
+                                      .loadDashboard(
+                                        teacherId: authState.user.id,
+                                      );
+                                }
+                              },
+                            )
+                          : null,
+                    ),
+                    onTap: () => _pickDateRange(context),
                   ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () => _search(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 20),
+                  ),
+                  child: const Text('Search'),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             if (sessions.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.event_busy,
-                          size: 48, color: AppTheme.textSecondaryColor),
-                      SizedBox(height: 8),
-                      Text('No classes scheduled for today'),
-                    ],
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text(
+                    'No data found',
+                    style: TextStyle(
+                      color: Color(0xFF4A4A4A),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               )
@@ -305,11 +467,12 @@ class _TeacherDashboardContent extends StatelessWidget {
                 child: DataTable(
                   columns: const [
                     DataColumn(label: Text('#')),
-                    DataColumn(label: Text('Time')),
-                    DataColumn(label: Text('Student')),
-                    DataColumn(label: Text('Course')),
-                    DataColumn(label: Text('Duration')),
-                    DataColumn(label: Text('Status')),
+                    DataColumn(label: Text('Class Time')),
+                    DataColumn(label: Text('Student Name')),
+                    DataColumn(label: Text('Course Name')),
+                    DataColumn(label: Text('Class Status')),
+                    DataColumn(label: Text('History')),
+                    DataColumn(label: Text('Action')),
                   ],
                   rows: sessions.asMap().entries.map((entry) {
                     final index = entry.key + 1;
@@ -319,8 +482,28 @@ class _TeacherDashboardContent extends StatelessWidget {
                       DataCell(Text(session.scheduledTime)),
                       DataCell(Text(session.studentName ?? session.studentId)),
                       DataCell(Text(session.courseId)),
-                      DataCell(Text('${session.duration} min')),
                       DataCell(_buildStatusChip(session.status)),
+                      DataCell(
+                        IconButton(
+                          icon: const Icon(Icons.history, color: Colors.blue),
+                          onPressed: () {
+                            // TODO: View session history
+                          },
+                        ),
+                      ),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.more_vert),
+                              onPressed: () {
+                                // TODO: Show action menu
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ]);
                   }).toList(),
                 ),

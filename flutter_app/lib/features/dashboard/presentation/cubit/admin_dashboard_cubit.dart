@@ -48,7 +48,6 @@ class AdminDashboardCubit extends Cubit<AdminDashboardState> {
         final allStudents = results[1] as List<StudentModel>;
 
         for (var t in allTeachers) {
-          NameCache.cacheTeacherName(t.userId, t.fullName);
           NameCache.cacheTeacherName(t.id, t.fullName);
         }
         for (var s in allStudents) {

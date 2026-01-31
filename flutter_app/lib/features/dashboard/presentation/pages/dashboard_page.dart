@@ -42,7 +42,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
     final authState = context.read<AuthCubit>().state;
     if (authState is AuthAuthenticated) {
       context.read<DashboardCubit>().loadDashboard(
-            teacherId: authState.user.userId,
+            teacherId: authState.user.id,
           );
     }
   }
@@ -51,7 +51,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
     final authState = context.read<AuthCubit>().state;
     if (authState is AuthAuthenticated) {
       context.read<DashboardCubit>().refreshDashboard(
-            teacherId: authState.user.userId,
+            teacherId: authState.user.id,
           );
     }
   }
@@ -91,7 +91,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.error_outline,
                           size: 48,
                           color: AppTheme.errorColor,
@@ -306,7 +306,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
               ),
               child: Column(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.payments_outlined,
                     color: AppTheme.successColor,
                     size: 32,
@@ -314,7 +314,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
                   const SizedBox(height: 4),
                   Text(
                     '${stats.completedSessions} Sessions',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppTheme.successColor,
                       fontWeight: FontWeight.w600,
@@ -371,7 +371,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
           child: Center(
             child: Column(
               children: [
-                Icon(
+                const Icon(
                   Icons.event_available,
                   size: 64,
                   color: AppTheme.textTertiaryColor,
@@ -403,9 +403,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
           // Table Header
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppTheme.surfaceColor,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
               ),
@@ -438,8 +438,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
     );
   }
 
-  Widget _buildTableHeader(BuildContext context, String text,
-      {int flex = 1}) {
+  Widget _buildTableHeader(BuildContext context, String text, {int flex = 1}) {
     return Expanded(
       flex: flex,
       child: Text(
@@ -455,7 +454,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent> {
   Widget _buildSessionRow(
       BuildContext context, ClassSessionModel session, int index) {
     final statusColor = AppTheme.getStatusColor(session.status);
-    final timeFormat = DateFormat('hh:mm a');
 
     return Padding(
       padding: const EdgeInsets.all(16),

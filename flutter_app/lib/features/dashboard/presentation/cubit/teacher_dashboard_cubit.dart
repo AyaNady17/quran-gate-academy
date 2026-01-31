@@ -86,7 +86,76 @@ class TeacherDashboardCubit extends Cubit<TeacherDashboardState> {
 
   /// Refresh dashboard
   Future<void> refreshDashboard({required String teacherId}) async {
-    await loadDashboard(teacherId: teacherId);
+    final currentState = state;
+    if (currentState is TeacherDashboardLoaded &&
+        currentState.searchStartDate != null) {
+      await searchSessionsByDate(
+        teacherId: teacherId,
+        startDate: currentState.searchStartDate!,
+        endDate: currentState.searchEndDate,
+      );
+    } else {
+      await loadDashboard(teacherId: teacherId);
+    }
+  }
+
+  /// Search sessions by date or date range
+  Future<void> searchSessionsByDate({
+    required String teacherId,
+    required DateTime startDate,
+    DateTime? endDate,
+  }) async {
+    // If no end date, search for the specific day
+    final searchStart =
+        DateTime(startDate.year, startDate.month, startDate.day);
+    final searchEnd = endDate != null
+        ? DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
+        : DateTime(startDate.year, startDate.month, startDate.day, 23, 59, 59);
+
+    final currentState = state;
+    if (currentState is TeacherDashboardLoaded) {
+      emit(TeacherDashboardLoading());
+      try {
+        final filteredSessions =
+            await dashboardRepository.getSessionsByDateRange(
+          teacherId: teacherId,
+          startDate: searchStart,
+          endDate: searchEnd,
+        );
+
+        // Fetch student names if missing
+        final missingStudentIds = filteredSessions
+            .map((s) => s.studentId)
+            .where((id) => !NameCache.hasStudent(id))
+            .toSet();
+
+        if (missingStudentIds.isNotEmpty) {
+          final allStudents = await studentRepository.getAllStudents();
+          for (var s in allStudents) {
+            NameCache.cacheStudentName(s.id, s.fullName);
+          }
+        }
+
+        // Populate names
+        final populatedSessions = filteredSessions.map((session) {
+          return session.copyWith(
+            studentName: NameCache.getStudentName(session.studentId) ??
+                'Unknown Student',
+          );
+        }).toList();
+
+        emit(TeacherDashboardLoaded(
+          stats: currentState.stats,
+          todaySessions: populatedSessions,
+          upcomingSessions: currentState.upcomingSessions,
+          searchStartDate: searchStart,
+          searchEndDate: endDate != null ? searchEnd : null,
+        ));
+      } catch (e) {
+        emit(TeacherDashboardError(
+            'Failed to search sessions: ${e.toString()}'));
+      }
+    }
   }
 
   /// Calculate teacher statistics from sessions

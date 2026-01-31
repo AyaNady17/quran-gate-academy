@@ -68,7 +68,6 @@ class SessionCubit extends Cubit<SessionState> {
 
         // Update caches
         for (var t in allTeachers) {
-          NameCache.cacheTeacherName(t.userId, t.fullName);
           NameCache.cacheTeacherName(t.id, t.fullName);
         }
         for (var s in allStudents) {
