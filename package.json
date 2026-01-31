@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "appwrite": "^21.5.0",
+    "node-appwrite": "^21.1.0"
+  },
+  "name": "quran-gate-academy",
+  "version": "1.0.0",
+  "description": "A comprehensive cross-platform academy management system built with **Flutter** and **Appwrite** for managing Quran teachers, students, classes, schedules, and more.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
