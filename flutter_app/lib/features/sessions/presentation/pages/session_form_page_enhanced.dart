@@ -106,12 +106,14 @@ class _SessionFormViewState extends State<_SessionFormView> {
         _studentService.getAllStudents(status: 'active'),
       ]);
 
-      final teachersData = results[0] as List<Map<String, dynamic>>;
-      final studentsData = results[1] as List<Map<String, dynamic>>;
+      final teachersData = results[0];
+      final studentsData = results[1];
 
       setState(() {
-        _teachers = teachersData.map((data) => TeacherModel.fromJson(data)).toList();
-        _students = studentsData.map((data) => StudentModel.fromJson(data)).toList();
+        _teachers =
+            teachersData.map((data) => TeacherModel.fromJson(data)).toList();
+        _students =
+            studentsData.map((data) => StudentModel.fromJson(data)).toList();
         _isLoadingData = false;
       });
     } catch (e) {
@@ -194,7 +196,8 @@ class _SessionFormViewState extends State<_SessionFormView> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                              const Icon(Icons.error_outline,
+                                  size: 64, color: Colors.red),
                               const SizedBox(height: 16),
                               Text(_loadingError!),
                               const SizedBox(height: 16),
@@ -289,7 +292,7 @@ class _SessionFormViewState extends State<_SessionFormView> {
 
                     // Teacher Dropdown
                     DropdownButtonFormField<String>(
-                      value: _teacherId,
+                      initialValue: _teacherId,
                       decoration: const InputDecoration(
                         labelText: 'Teacher *',
                         border: OutlineInputBorder(),
@@ -298,15 +301,18 @@ class _SessionFormViewState extends State<_SessionFormView> {
                       items: _teachers.map((teacher) {
                         return DropdownMenuItem(
                           value: teacher.id,
-                          child: Text('${teacher.fullName} (\$${teacher.hourlyRate}/hr)'),
+                          child: Text(
+                              '${teacher.fullName} (\$${teacher.hourlyRate}/hr)'),
                         );
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
                           _teacherId = value;
                           // Find selected teacher and get hourly rate
-                          final selectedTeacher = _teachers.firstWhere((t) => t.id == value);
-                          _selectedTeacherHourlyRate = selectedTeacher.hourlyRate;
+                          final selectedTeacher =
+                              _teachers.firstWhere((t) => t.id == value);
+                          _selectedTeacherHourlyRate =
+                              selectedTeacher.hourlyRate;
                           _calculateSalary();
                         });
                       },
@@ -321,7 +327,7 @@ class _SessionFormViewState extends State<_SessionFormView> {
 
                     // Student Dropdown
                     DropdownButtonFormField<String>(
-                      value: _studentId,
+                      initialValue: _studentId,
                       decoration: const InputDecoration(
                         labelText: 'Student *',
                         border: OutlineInputBorder(),
@@ -354,7 +360,8 @@ class _SessionFormViewState extends State<_SessionFormView> {
                           context: context,
                           initialDate: _scheduledDate,
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
                         );
                         if (picked != null) {
                           setState(() {
@@ -398,7 +405,8 @@ class _SessionFormViewState extends State<_SessionFormView> {
                         labelText: 'Duration (minutes) *',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.timer),
-                        helperText: 'Auto-calculates salary based on hourly rate',
+                        helperText:
+                            'Auto-calculates salary based on hourly rate',
                       ),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -478,7 +486,9 @@ class _SessionFormViewState extends State<_SessionFormView> {
                                     color: Colors.white,
                                   ),
                                 )
-                              : Text(isEditing ? 'Update Session' : 'Create Session'),
+                              : Text(isEditing
+                                  ? 'Update Session'
+                                  : 'Create Session'),
                         ),
                         const SizedBox(width: 16),
                         TextButton(

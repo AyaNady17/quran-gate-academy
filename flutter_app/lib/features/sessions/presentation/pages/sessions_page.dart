@@ -129,7 +129,7 @@ class _SessionsViewState extends State<_SessionsView> {
         children: [
           Expanded(
             child: DropdownButtonFormField<String>(
-              value: _selectedStatus,
+              initialValue: _selectedStatus,
               decoration: const InputDecoration(
                 labelText: 'Filter by Status',
                 border: OutlineInputBorder(),
@@ -460,11 +460,11 @@ class _SessionsViewState extends State<_SessionsView> {
   }
 
   void _navigateToCreateSession(BuildContext context) {
-    context.push('/sessions/create');
+    context.go('/sessions/create');
   }
 
   void _navigateToEditSession(BuildContext context, ClassSessionModel session) {
-    context.push('/sessions/edit/${session.id}');
+    context.go('/sessions/edit/${session.id}');
   }
 
   void _confirmDeleteSession(BuildContext context, ClassSessionModel session) {
@@ -508,7 +508,7 @@ class _SessionsViewState extends State<_SessionsView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
-                  value: attendanceStatus,
+                  initialValue: attendanceStatus,
                   decoration: const InputDecoration(
                     labelText: 'Attendance Status',
                     border: OutlineInputBorder(),
