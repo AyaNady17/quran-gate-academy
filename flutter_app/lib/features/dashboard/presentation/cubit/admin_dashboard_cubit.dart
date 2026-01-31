@@ -1,14 +1,24 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quran_gate_academy/core/models/class_session_model.dart';
+import 'package:quran_gate_academy/core/models/student_model.dart';
+import 'package:quran_gate_academy/core/models/teacher_model.dart';
+import 'package:quran_gate_academy/core/utils/name_cache.dart';
 import 'package:quran_gate_academy/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/cubit/admin_dashboard_state.dart';
+import 'package:quran_gate_academy/features/students/domain/repositories/student_repository.dart';
+import 'package:quran_gate_academy/features/teachers/domain/repositories/teacher_repository.dart';
 
 /// Admin Dashboard Cubit - Manages admin dashboard state
 class AdminDashboardCubit extends Cubit<AdminDashboardState> {
   final DashboardRepository dashboardRepository;
+  final TeacherRepository teacherRepository;
+  final StudentRepository studentRepository;
 
-  AdminDashboardCubit({required this.dashboardRepository})
-      : super(AdminDashboardInitial());
+  AdminDashboardCubit({
+    required this.dashboardRepository,
+    required this.teacherRepository,
+    required this.studentRepository,
+  }) : super(AdminDashboardInitial());
 
   /// Load admin dashboard with system-wide statistics
   Future<void> loadDashboard() async {
@@ -16,7 +26,45 @@ class AdminDashboardCubit extends Cubit<AdminDashboardState> {
     try {
       // Fetch system-wide data (no teacherId filter for admin)
       final allSessions = await dashboardRepository.getAllSessions();
-      final recentSessions = allSessions.take(10).toList();
+      var recentSessions = allSessions.take(10).toList();
+
+      // Fetch names if missing
+      final missingTeacherIds = recentSessions
+          .map((s) => s.teacherId)
+          .where((id) => !NameCache.hasTeacher(id))
+          .toSet();
+      final missingStudentIds = recentSessions
+          .map((s) => s.studentId)
+          .where((id) => !NameCache.hasStudent(id))
+          .toSet();
+
+      if (missingTeacherIds.isNotEmpty || missingStudentIds.isNotEmpty) {
+        final results = await Future.wait([
+          teacherRepository.getAllTeachers(),
+          studentRepository.getAllStudents(),
+        ]);
+
+        final allTeachers = results[0] as List<TeacherModel>;
+        final allStudents = results[1] as List<StudentModel>;
+
+        for (var t in allTeachers) {
+          NameCache.cacheTeacherName(t.userId, t.fullName);
+          NameCache.cacheTeacherName(t.id, t.fullName);
+        }
+        for (var s in allStudents) {
+          NameCache.cacheStudentName(s.id, s.fullName);
+        }
+      }
+
+      // Populate names
+      recentSessions = recentSessions.map((session) {
+        return session.copyWith(
+          teacherName:
+              NameCache.getTeacherName(session.teacherId) ?? 'Unknown Teacher',
+          studentName:
+              NameCache.getStudentName(session.studentId) ?? 'Unknown Student',
+        );
+      }).toList();
 
       // Calculate statistics
       final stats = _calculateStats(allSessions);
@@ -26,7 +74,8 @@ class AdminDashboardCubit extends Cubit<AdminDashboardState> {
         recentSessions: recentSessions,
       ));
     } catch (e) {
-      emit(AdminDashboardError('Failed to load admin dashboard: ${e.toString()}'));
+      emit(AdminDashboardError(
+          'Failed to load admin dashboard: ${e.toString()}'));
     }
   }
 
@@ -42,14 +91,12 @@ class AdminDashboardCubit extends Cubit<AdminDashboardState> {
     final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
     // Filter completed sessions
-    final completedSessions = sessions
-        .where((session) => session.status == 'completed')
-        .toList();
+    final completedSessions =
+        sessions.where((session) => session.status == 'completed').toList();
 
     // Filter scheduled sessions
-    final scheduledSessions = sessions
-        .where((session) => session.status == 'scheduled')
-        .toList();
+    final scheduledSessions =
+        sessions.where((session) => session.status == 'scheduled').toList();
 
     // Filter sessions for current month
     final monthlySessions = sessions.where((session) {

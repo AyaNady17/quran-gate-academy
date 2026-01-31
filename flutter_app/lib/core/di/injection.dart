@@ -111,10 +111,15 @@ Future<void> configureDependencies() async {
   // Cubits
   getIt.registerFactory(() => AuthCubit(authRepository: getIt()));
   getIt.registerFactory(() => DashboardCubit(dashboardRepository: getIt()));
-  getIt
-      .registerFactory(() => AdminDashboardCubit(dashboardRepository: getIt()));
-  getIt.registerFactory(
-      () => TeacherDashboardCubit(dashboardRepository: getIt()));
+  getIt.registerFactory(() => AdminDashboardCubit(
+        dashboardRepository: getIt(),
+        teacherRepository: getIt(),
+        studentRepository: getIt(),
+      ));
+  getIt.registerFactory(() => TeacherDashboardCubit(
+        dashboardRepository: getIt(),
+        studentRepository: getIt(),
+      ));
   getIt.registerFactory(() => ScheduleCubit(scheduleRepository: getIt()));
   getIt.registerFactory(() => StudentCubit(studentRepository: getIt()));
   getIt.registerFactory(() => TaskCubit(taskRepository: getIt()));

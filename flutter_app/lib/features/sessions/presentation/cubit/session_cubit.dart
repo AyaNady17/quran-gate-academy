@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quran_gate_academy/core/models/user_model.dart';
+import 'package:quran_gate_academy/core/utils/name_cache.dart';
 import 'package:quran_gate_academy/features/sessions/domain/repositories/session_repository.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_state.dart';
 import 'package:quran_gate_academy/features/students/domain/repositories/student_repository.dart';
@@ -18,9 +19,6 @@ class SessionCubit extends Cubit<SessionState> {
     required this.studentRepository,
     required this.currentUser,
   }) : super(SessionInitial());
-
-  static final Map<String, String> _teacherNameCache = {};
-  static final Map<String, String> _studentNameCache = {};
 
   /// Load all sessions with optional filters
   Future<void> loadSessions({
@@ -49,11 +47,11 @@ class SessionCubit extends Cubit<SessionState> {
       // Check if we need to fetch any missing names
       final missingTeacherIds = sessions
           .map((s) => s.teacherId)
-          .where((id) => !_teacherNameCache.containsKey(id))
+          .where((id) => !NameCache.hasTeacher(id))
           .toSet();
       final missingStudentIds = sessions
           .map((s) => s.studentId)
-          .where((id) => !_studentNameCache.containsKey(id))
+          .where((id) => !NameCache.hasStudent(id))
           .toSet();
 
       if (missingTeacherIds.isNotEmpty || missingStudentIds.isNotEmpty) {
@@ -70,11 +68,11 @@ class SessionCubit extends Cubit<SessionState> {
 
         // Update caches
         for (var t in allTeachers) {
-          _teacherNameCache[t.userId] = t.fullName;
-          _teacherNameCache[t.id] = t.fullName;
+          NameCache.cacheTeacherName(t.userId, t.fullName);
+          NameCache.cacheTeacherName(t.id, t.fullName);
         }
         for (var s in allStudents) {
-          _studentNameCache[s.id] = s.fullName;
+          NameCache.cacheStudentName(s.id, s.fullName);
         }
       }
 
@@ -82,9 +80,9 @@ class SessionCubit extends Cubit<SessionState> {
       final populatedSessions = sessions.map((session) {
         return session.copyWith(
           teacherName:
-              _teacherNameCache[session.teacherId] ?? 'Unknown Teacher',
+              NameCache.getTeacherName(session.teacherId) ?? 'Unknown Teacher',
           studentName:
-              _studentNameCache[session.studentId] ?? 'Unknown Student',
+              NameCache.getStudentName(session.studentId) ?? 'Unknown Student',
         );
       }).toList();
 

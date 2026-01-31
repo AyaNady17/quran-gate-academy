@@ -94,8 +94,9 @@ class _AdminDashboardContent extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
                         ElevatedButton.icon(
-                          onPressed: () =>
-                              context.read<AdminDashboardCubit>().loadDashboard(),
+                          onPressed: () => context
+                              .read<AdminDashboardCubit>()
+                              .loadDashboard(),
                           icon: const Icon(Icons.refresh),
                           label: const Text('Retry'),
                         ),
@@ -208,7 +209,7 @@ class _AdminDashboardContent extends StatelessWidget {
                   icon: Icons.add,
                   label: 'New Session',
                   color: AppTheme.primaryColor,
-                  onTap: () => context.go(AppRouter.sessionsRoute +'/create'),
+                  onTap: () => context.go(AppRouter.sessionsRoute + '/create'),
                 ),
                 _QuickActionButton(
                   icon: Icons.person_add,
@@ -294,8 +295,8 @@ class _AdminDashboardContent extends StatelessWidget {
                     return DataRow(cells: [
                       DataCell(Text(dateFormat.format(session.scheduledDate))),
                       DataCell(Text(session.scheduledTime)),
-                      DataCell(Text(session.teacherId)), // TODO: Fetch name
-                      DataCell(Text(session.studentId)), // TODO: Fetch name
+                      DataCell(Text(session.teacherName ?? session.teacherId)),
+                      DataCell(Text(session.studentName ?? session.studentId)),
                       DataCell(Text('${session.duration} min')),
                       DataCell(_buildStatusChip(session.status)),
                     ]);

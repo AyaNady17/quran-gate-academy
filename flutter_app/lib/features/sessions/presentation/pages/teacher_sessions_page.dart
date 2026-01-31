@@ -24,8 +24,8 @@ class TeacherSessionsPage extends StatelessWidget {
     }
 
     return BlocProvider(
-      create: (context) => getIt<SessionCubit>(param1: authState.user)
-          ..loadSessions(),
+      create: (context) =>
+          getIt<SessionCubit>(param1: authState.user)..loadSessions(),
       child: const _TeacherSessionsView(),
     );
   }
@@ -191,11 +191,16 @@ class _TeacherSessionsView extends StatelessWidget {
     );
   }
 
-  Widget _buildSessionsCards(BuildContext context, List<ClassSessionModel> sessions) {
+  Widget _buildSessionsCards(
+      BuildContext context, List<ClassSessionModel> sessions) {
     // Group sessions by status
-    final upcomingSessions = sessions.where((s) => s.status == 'scheduled').toList();
-    final completedSessions = sessions.where((s) => s.status == 'completed').toList();
-    final otherSessions = sessions.where((s) => s.status != 'scheduled' && s.status != 'completed').toList();
+    final upcomingSessions =
+        sessions.where((s) => s.status == 'scheduled').toList();
+    final completedSessions =
+        sessions.where((s) => s.status == 'completed').toList();
+    final otherSessions = sessions
+        .where((s) => s.status != 'scheduled' && s.status != 'completed')
+        .toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -210,7 +215,8 @@ class _TeacherSessionsView extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 16),
-            ...upcomingSessions.map((session) => _buildSessionCard(context, session)),
+            ...upcomingSessions
+                .map((session) => _buildSessionCard(context, session)),
             const SizedBox(height: 24),
           ],
           if (completedSessions.isNotEmpty) ...[
@@ -221,7 +227,8 @@ class _TeacherSessionsView extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 16),
-            ...completedSessions.map((session) => _buildSessionCard(context, session)),
+            ...completedSessions
+                .map((session) => _buildSessionCard(context, session)),
             const SizedBox(height: 24),
           ],
           if (otherSessions.isNotEmpty) ...[
@@ -232,7 +239,8 @@ class _TeacherSessionsView extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 16),
-            ...otherSessions.map((session) => _buildSessionCard(context, session)),
+            ...otherSessions
+                .map((session) => _buildSessionCard(context, session)),
           ],
         ],
       ),
@@ -259,13 +267,14 @@ class _TeacherSessionsView extends StatelessWidget {
                     children: [
                       Text(
                         'Course: ${session.courseId}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Student ID: ${session.studentId}',
+                        'Student: ${session.studentName ?? session.studentId}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppTheme.textSecondaryColor,
                             ),
@@ -279,14 +288,16 @@ class _TeacherSessionsView extends StatelessWidget {
             const Divider(height: 24),
             Row(
               children: [
-                Icon(Icons.calendar_today, size: 16, color: AppTheme.textSecondaryColor),
+                Icon(Icons.calendar_today,
+                    size: 16, color: AppTheme.textSecondaryColor),
                 const SizedBox(width: 8),
                 Text(
                   dateFormat.format(session.scheduledDate),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(width: 24),
-                Icon(Icons.access_time, size: 16, color: AppTheme.textSecondaryColor),
+                Icon(Icons.access_time,
+                    size: 16, color: AppTheme.textSecondaryColor),
                 const SizedBox(width: 8),
                 Text(
                   timeFormat.format(session.scheduledDate),
@@ -304,7 +315,8 @@ class _TeacherSessionsView extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.attach_money, size: 16, color: AppTheme.textSecondaryColor),
+                Icon(Icons.attach_money,
+                    size: 16, color: AppTheme.textSecondaryColor),
                 const SizedBox(width: 8),
                 Text(
                   'Salary: \$${session.salaryAmount.toStringAsFixed(2)}',
@@ -321,7 +333,8 @@ class _TeacherSessionsView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => _showMarkCompleteDialog(context, session),
+                      onPressed: () =>
+                          _showMarkCompleteDialog(context, session),
                       icon: const Icon(Icons.check_circle_outline),
                       label: const Text('Mark Complete'),
                     ),
@@ -383,7 +396,8 @@ class _TeacherSessionsView extends StatelessWidget {
     );
   }
 
-  void _showMarkCompleteDialog(BuildContext context, ClassSessionModel session) {
+  void _showMarkCompleteDialog(
+      BuildContext context, ClassSessionModel session) {
     String attendanceStatus = 'present';
     final notesController = TextEditingController();
 
@@ -513,13 +527,16 @@ class _TeacherSessionsView extends StatelessWidget {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: newDate == null || newTime == null || reasonController.text.trim().isEmpty
+              onPressed: newDate == null ||
+                      newTime == null ||
+                      reasonController.text.trim().isEmpty
                   ? null
                   : () {
                       // TODO: Implement reschedule request creation
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Reschedule request feature coming soon'),
+                          content:
+                              Text('Reschedule request feature coming soon'),
                           backgroundColor: Colors.orange,
                         ),
                       );

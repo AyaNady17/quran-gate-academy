@@ -81,7 +81,8 @@ class _TeacherDashboardContent extends StatelessWidget {
                           const SizedBox(height: 32),
                           _buildTodaySessions(context, state.todaySessions),
                           const SizedBox(height: 32),
-                          _buildUpcomingSessions(context, state.upcomingSessions),
+                          _buildUpcomingSessions(
+                              context, state.upcomingSessions),
                         ],
                       ),
                     ),
@@ -111,7 +112,9 @@ class _TeacherDashboardContent extends StatelessWidget {
                           onPressed: () {
                             final authState = context.read<AuthCubit>().state;
                             if (authState is AuthAuthenticated) {
-                              context.read<TeacherDashboardCubit>().loadDashboard(
+                              context
+                                  .read<TeacherDashboardCubit>()
+                                  .loadDashboard(
                                     teacherId: authState.user.userId,
                                   );
                             }
@@ -266,7 +269,8 @@ class _TeacherDashboardContent extends StatelessWidget {
     );
   }
 
-  Widget _buildTodaySessions(BuildContext context, List<ClassSessionModel> sessions) {
+  Widget _buildTodaySessions(
+      BuildContext context, List<ClassSessionModel> sessions) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -287,7 +291,8 @@ class _TeacherDashboardContent extends StatelessWidget {
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(Icons.event_busy, size: 48, color: AppTheme.textSecondaryColor),
+                      Icon(Icons.event_busy,
+                          size: 48, color: AppTheme.textSecondaryColor),
                       SizedBox(height: 8),
                       Text('No classes scheduled for today'),
                     ],
@@ -312,8 +317,8 @@ class _TeacherDashboardContent extends StatelessWidget {
                     return DataRow(cells: [
                       DataCell(Text(index.toString())),
                       DataCell(Text(session.scheduledTime)),
-                      DataCell(Text(session.studentId)), // TODO: Fetch name
-                      DataCell(Text(session.courseId)), // TODO: Fetch name
+                      DataCell(Text(session.studentName ?? session.studentId)),
+                      DataCell(Text(session.courseId)),
                       DataCell(Text('${session.duration} min')),
                       DataCell(_buildStatusChip(session.status)),
                     ]);
@@ -350,7 +355,8 @@ class _TeacherDashboardContent extends StatelessWidget {
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(Icons.calendar_today, size: 48, color: AppTheme.textSecondaryColor),
+                      Icon(Icons.calendar_today,
+                          size: 48, color: AppTheme.textSecondaryColor),
                       SizedBox(height: 8),
                       Text('No upcoming sessions'),
                     ],
@@ -368,14 +374,15 @@ class _TeacherDashboardContent extends StatelessWidget {
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                      child: const Icon(Icons.event, color: AppTheme.primaryColor),
+                      child:
+                          const Icon(Icons.event, color: AppTheme.primaryColor),
                     ),
                     title: Text(
                       '${dateFormat.format(session.scheduledDate)} at ${session.scheduledTime}',
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      'Student: ${session.studentId} • ${session.duration} min',
+                      'Student: ${session.studentName ?? session.studentId} • ${session.duration} min',
                     ),
                     trailing: _buildStatusChip(session.status),
                   );

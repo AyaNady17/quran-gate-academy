@@ -1,14 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quran_gate_academy/core/models/class_session_model.dart';
+import 'package:quran_gate_academy/core/utils/name_cache.dart';
 import 'package:quran_gate_academy/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/cubit/teacher_dashboard_state.dart';
+import 'package:quran_gate_academy/features/students/domain/repositories/student_repository.dart';
 
 /// Teacher Dashboard Cubit - Manages teacher dashboard state
 class TeacherDashboardCubit extends Cubit<TeacherDashboardState> {
   final DashboardRepository dashboardRepository;
+  final StudentRepository studentRepository;
 
-  TeacherDashboardCubit({required this.dashboardRepository})
-      : super(TeacherDashboardInitial());
+  TeacherDashboardCubit({
+    required this.dashboardRepository,
+    required this.studentRepository,
+  }) : super(TeacherDashboardInitial());
 
   /// Load teacher dashboard with personal statistics
   Future<void> loadDashboard({required String teacherId}) async {
@@ -39,10 +44,39 @@ class TeacherDashboardCubit extends Cubit<TeacherDashboardState> {
         upcomingSessions,
       );
 
+      // Fetch student names if missing
+      final allDashboardSessions = [...todaySessions, ...upcomingSessions];
+      final missingStudentIds = allDashboardSessions
+          .map((s) => s.studentId)
+          .where((id) => !NameCache.hasStudent(id))
+          .toSet();
+
+      if (missingStudentIds.isNotEmpty) {
+        final allStudents = await studentRepository.getAllStudents();
+        for (var s in allStudents) {
+          NameCache.cacheStudentName(s.id, s.fullName);
+        }
+      }
+
+      // Populate names
+      final populatedTodaySessions = todaySessions.map((session) {
+        return session.copyWith(
+          studentName:
+              NameCache.getStudentName(session.studentId) ?? 'Unknown Student',
+        );
+      }).toList();
+
+      final populatedUpcomingSessions = upcomingSessions.map((session) {
+        return session.copyWith(
+          studentName:
+              NameCache.getStudentName(session.studentId) ?? 'Unknown Student',
+        );
+      }).toList();
+
       emit(TeacherDashboardLoaded(
         stats: stats,
-        todaySessions: todaySessions,
-        upcomingSessions: upcomingSessions,
+        todaySessions: populatedTodaySessions,
+        upcomingSessions: populatedUpcomingSessions,
       ));
     } catch (e) {
       emit(TeacherDashboardError(
