@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quran_gate_academy/core/di/injection.dart';
@@ -6,6 +7,7 @@ import 'package:quran_gate_academy/core/theme/app_theme.dart';
 import 'package:quran_gate_academy/core/widgets/app_sidebar.dart';
 import 'package:quran_gate_academy/features/students/presentation/cubit/student_cubit.dart';
 import 'package:quran_gate_academy/features/students/presentation/cubit/student_state.dart';
+import 'dart:math';
 
 /// Student Form Page - Create or Edit Student
 class StudentFormPage extends StatefulWidget {
@@ -30,9 +32,13 @@ class _StudentFormPageState extends State<StudentFormPage> {
   final _countryCodeController = TextEditingController();
   final _timezoneController = TextEditingController();
   final _notesController = TextEditingController();
+  final _accountEmailController = TextEditingController();
+  final _accountPasswordController = TextEditingController();
 
   String _status = 'active';
   bool _isLoading = true;
+  bool _createUserAccount = false;
+  bool _passwordVisible = false;
 
   @override
   void initState() {
@@ -84,7 +90,15 @@ class _StudentFormPageState extends State<StudentFormPage> {
     _countryCodeController.dispose();
     _timezoneController.dispose();
     _notesController.dispose();
+    _accountEmailController.dispose();
+    _accountPasswordController.dispose();
     super.dispose();
+  }
+
+  String _generatePassword() {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%';
+    final random = Random.secure();
+    return List.generate(12, (index) => chars[random.nextInt(chars.length)]).join();
   }
 
   @override
@@ -117,6 +131,125 @@ class _StudentFormPageState extends State<StudentFormPage> {
             ),
           );
           context.go('/students');
+        } else if (state is StudentCreatedWithAccount) {
+          // Show success dialog with account credentials
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green),
+                  const SizedBox(width: 12),
+                  const Text('Success!'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Student and user account created successfully!',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Account Credentials:'),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.email, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                state.accountEmail,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.copy, size: 16),
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: state.accountEmail));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Email copied')),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const Divider(),
+                        Row(
+                          children: [
+                            const Icon(Icons.lock, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                state.accountPassword,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.copy, size: 16),
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: state.accountPassword));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Password copied')),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.amber.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning_amber, size: 20, color: Colors.amber.shade700),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Make sure to securely save these credentials before closing this dialog.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.amber.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    context.go('/students');
+                  },
+                  child: const Text('Close'),
+                ),
+              ],
+            ),
+          );
         } else if (state is StudentUpdated) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -159,6 +292,8 @@ class _StudentFormPageState extends State<StudentFormPage> {
                         const SizedBox(height: 24),
                         _buildNotesSection(),
                         const SizedBox(height: 24),
+                        if (widget.studentId == null) _buildAccountCreationSection(),
+                        if (widget.studentId == null) const SizedBox(height: 24),
                         if (widget.studentId != null) _buildStatusSection(),
                         const SizedBox(height: 32),
                         _buildActionButtons(context, state),
@@ -368,6 +503,177 @@ class _StudentFormPageState extends State<StudentFormPage> {
     );
   }
 
+  Widget _buildAccountCreationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'User Account (Optional)',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const Spacer(),
+            Switch(
+              value: _createUserAccount,
+              onChanged: (value) {
+                setState(() {
+                  _createUserAccount = value;
+                  if (value) {
+                    // Pre-fill email from student email if available
+                    if (_emailController.text.isNotEmpty) {
+                      _accountEmailController.text = _emailController.text;
+                    }
+                    // Generate initial password
+                    _accountPasswordController.text = _generatePassword();
+                  }
+                });
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Create a user account to allow the student to login',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.textSecondaryColor,
+              ),
+        ),
+        if (_createUserAccount) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Account Email
+                TextFormField(
+                  controller: _accountEmailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Account Email *',
+                    hintText: 'student@example.com',
+                    prefixIcon: Icon(Icons.email),
+                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (_createUserAccount) {
+                      if (value == null || value.isEmpty) {
+                        return 'Email is required for account creation';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Please enter a valid email';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Account Password
+                TextFormField(
+                  controller: _accountPasswordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password *',
+                    hintText: 'Generated password',
+                    prefixIcon: const Icon(Icons.lock),
+                    border: const OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.white,
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _passwordVisible = !_passwordVisible;
+                            });
+                          },
+                          tooltip: _passwordVisible ? 'Hide password' : 'Show password',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.refresh),
+                          onPressed: () {
+                            setState(() {
+                              _accountPasswordController.text = _generatePassword();
+                            });
+                          },
+                          tooltip: 'Generate new password',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.copy),
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(text: _accountPasswordController.text),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Password copied to clipboard'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          tooltip: 'Copy password',
+                        ),
+                      ],
+                    ),
+                  ),
+                  obscureText: !_passwordVisible,
+                  validator: (value) {
+                    if (_createUserAccount) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password is required for account creation';
+                      }
+                      if (value.length < 8) {
+                        return 'Password must be at least 8 characters';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                // Info box
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.amber.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, size: 20, color: Colors.amber.shade700),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Make sure to copy and securely share this password with the student. They can change it after first login.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.amber.shade900,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildStatusSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,7 +734,13 @@ class _StudentFormPageState extends State<StudentFormPage> {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
-              : Text(widget.studentId != null ? 'Update Student' : 'Create Student'),
+              : Text(
+                  widget.studentId != null
+                      ? 'Update Student'
+                      : _createUserAccount
+                          ? 'Create Student & Account'
+                          : 'Create Student',
+                ),
         ),
       ],
     );
@@ -442,6 +754,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
     final cubit = context.read<StudentCubit>();
 
     if (widget.studentId != null) {
+      // Update existing student
       cubit.updateStudent(
         studentId: widget.studentId!,
         fullName: _fullNameController.text.trim(),
@@ -469,30 +782,62 @@ class _StudentFormPageState extends State<StudentFormPage> {
             : _notesController.text.trim(),
       );
     } else {
-      cubit.createStudent(
-        fullName: _fullNameController.text.trim(),
-        email: _emailController.text.trim().isEmpty
-            ? null
-            : _emailController.text.trim(),
-        phone: _phoneController.text.trim().isEmpty
-            ? null
-            : _phoneController.text.trim(),
-        whatsapp: _whatsappController.text.trim().isEmpty
-            ? null
-            : _whatsappController.text.trim(),
-        country: _countryController.text.trim().isEmpty
-            ? null
-            : _countryController.text.trim(),
-        countryCode: _countryCodeController.text.trim().isEmpty
-            ? null
-            : _countryCodeController.text.trim(),
-        timezone: _timezoneController.text.trim().isEmpty
-            ? null
-            : _timezoneController.text.trim(),
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
-      );
+      // Create new student
+      if (_createUserAccount) {
+        // Create student with account
+        cubit.createStudentWithAccount(
+          fullName: _fullNameController.text.trim(),
+          email: _emailController.text.trim().isEmpty
+              ? null
+              : _emailController.text.trim(),
+          phone: _phoneController.text.trim().isEmpty
+              ? null
+              : _phoneController.text.trim(),
+          whatsapp: _whatsappController.text.trim().isEmpty
+              ? null
+              : _whatsappController.text.trim(),
+          country: _countryController.text.trim().isEmpty
+              ? null
+              : _countryController.text.trim(),
+          countryCode: _countryCodeController.text.trim().isEmpty
+              ? null
+              : _countryCodeController.text.trim(),
+          timezone: _timezoneController.text.trim().isEmpty
+              ? null
+              : _timezoneController.text.trim(),
+          notes: _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
+          accountEmail: _accountEmailController.text.trim(),
+          accountPassword: _accountPasswordController.text,
+        );
+      } else {
+        // Create student only
+        cubit.createStudent(
+          fullName: _fullNameController.text.trim(),
+          email: _emailController.text.trim().isEmpty
+              ? null
+              : _emailController.text.trim(),
+          phone: _phoneController.text.trim().isEmpty
+              ? null
+              : _phoneController.text.trim(),
+          whatsapp: _whatsappController.text.trim().isEmpty
+              ? null
+              : _whatsappController.text.trim(),
+          country: _countryController.text.trim().isEmpty
+              ? null
+              : _countryController.text.trim(),
+          countryCode: _countryCodeController.text.trim().isEmpty
+              ? null
+              : _countryCodeController.text.trim(),
+          timezone: _timezoneController.text.trim().isEmpty
+              ? null
+              : _timezoneController.text.trim(),
+          notes: _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
+        );
+      }
     }
   }
 }

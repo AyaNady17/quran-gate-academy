@@ -41,6 +41,7 @@ A comprehensive cross-platform academy management system built with **Flutter** 
 
 - 👥 **User Management** - Manage teachers and their profiles
 - 👨‍🎓 **Student Management** - Full CRUD operations for students
+- 🔐 **Student Account Creation** - Create user accounts for students to access the portal
 - 📚 **Course Management** - Create and manage courses
 - 📋 **Plan Management** - Create student subscription plans
 - 🎓 **Session Assignment** - Assign teachers to sessions based on availability
@@ -48,6 +49,16 @@ A comprehensive cross-platform academy management system built with **Flutter** 
 - 💰 **Salary Management** - View and manage teacher salaries
 - 📊 **Analytics** - Teacher performance and attendance tracking
 - 📝 **Task Management** - Create and assign tasks
+- 📤 **Materials Management** - Upload and manage learning materials with course-based access
+
+### For Students
+
+- 📊 **Dashboard** - View session statistics, attendance, and hours learned
+- 📅 **My Sessions** - View past, upcoming, and all sessions with teacher names
+- 🔗 **Meeting Links** - Access session meeting links (visible only for today's and upcoming sessions)
+- 📚 **Learning Materials** - Browse and download course materials (PDFs, videos, audio, documents)
+- 👤 **Profile** - View personal information and contact details
+- 📈 **Progress Tracking** - Monitor attendance percentage and completed sessions
 
 ## 📱 Screenshots
 
@@ -388,7 +399,29 @@ quran-gate-academy/
 - View all teacher statistics
 - Manage salary records
 - Create/assign tasks
+- Upload and manage learning materials
+- Create user accounts for students
 - Access to all system features
+
+### Student Role
+
+**Permissions:**
+- View personalized dashboard with session statistics
+- View past and upcoming sessions
+- Access session meeting links (for today's and upcoming sessions only)
+- Browse and download learning materials (filtered by enrolled courses)
+- View personal profile and contact information
+- View teacher names and session details
+
+**Restrictions:**
+- Read-only access (cannot edit or create any data)
+- Cannot reschedule sessions
+- Cannot access other students' information
+- Cannot access admin or teacher features
+- Cannot upload materials
+- Meeting links only visible for upcoming/today's sessions (security measure)
+
+**Note:** Student accounts are created by admins who link existing student records to user accounts with login credentials.
 
 ## 🎯 Key Features Explained
 

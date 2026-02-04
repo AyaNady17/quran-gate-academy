@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Student model
 class StudentModel extends Equatable {
   final String id;
+  final String? userId; // Links to User record for student users with auth
   final String fullName;
   final String? email;
   final String? phone;
@@ -18,6 +19,7 @@ class StudentModel extends Equatable {
 
   const StudentModel({
     required this.id,
+    this.userId,
     required this.fullName,
     this.email,
     this.phone,
@@ -35,6 +37,7 @@ class StudentModel extends Equatable {
   factory StudentModel.fromJson(Map<String, dynamic> json) {
     return StudentModel(
       id: json['\$id'] ?? '',
+      userId: json['userId'],
       fullName: json['fullName'] ?? '',
       email: json['email'],
       phone: json['phone'],
@@ -52,6 +55,7 @@ class StudentModel extends Equatable {
 
   Map<String, dynamic> toJson() {
     return {
+      'userId': userId,
       'fullName': fullName,
       'email': email,
       'phone': phone,
@@ -69,6 +73,7 @@ class StudentModel extends Equatable {
 
   StudentModel copyWith({
     String? id,
+    String? userId,
     String? fullName,
     String? email,
     String? phone,
@@ -84,6 +89,7 @@ class StudentModel extends Equatable {
   }) {
     return StudentModel(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
       phone: phone ?? this.phone,
@@ -102,6 +108,7 @@ class StudentModel extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        userId,
         fullName,
         email,
         phone,

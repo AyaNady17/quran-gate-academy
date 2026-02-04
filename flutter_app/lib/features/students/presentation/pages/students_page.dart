@@ -7,6 +7,7 @@ import 'package:quran_gate_academy/core/theme/app_theme.dart';
 import 'package:quran_gate_academy/core/widgets/app_sidebar.dart';
 import 'package:quran_gate_academy/features/students/presentation/cubit/student_cubit.dart';
 import 'package:quran_gate_academy/features/students/presentation/cubit/student_state.dart';
+import 'package:quran_gate_academy/features/students/presentation/widgets/create_account_dialog.dart';
 
 /// Students page - Manage students and view their information
 class StudentsPage extends StatelessWidget {
@@ -275,6 +276,16 @@ class _StudentsView extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            // Show "Create Account" button if student doesn't have a userId
+                            if (student.userId == null || student.userId!.isEmpty)
+                              IconButton(
+                                icon: const Icon(Icons.person_add, size: 20),
+                                color: Colors.blue,
+                                onPressed: () {
+                                  _showCreateAccountDialog(context, student);
+                                },
+                                tooltip: 'Create User Account',
+                              ),
                             IconButton(
                               icon: const Icon(Icons.edit, size: 20),
                               onPressed: () {
@@ -343,5 +354,24 @@ class _StudentsView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showCreateAccountDialog(BuildContext context, StudentModel student) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CreateAccountDialog(student: student),
+    );
+
+    if (result == true && context.mounted) {
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('User account created successfully for ${student.fullName}'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // Reload students to refresh the list
+      context.read<StudentCubit>().loadStudents();
+    }
   }
 }

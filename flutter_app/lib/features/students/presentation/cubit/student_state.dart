@@ -43,6 +43,22 @@ class StudentCreated extends StudentState {
   List<Object?> get props => [student];
 }
 
+/// Student created with account successfully
+class StudentCreatedWithAccount extends StudentState {
+  final StudentModel student;
+  final String accountEmail;
+  final String accountPassword;
+
+  const StudentCreatedWithAccount({
+    required this.student,
+    required this.accountEmail,
+    required this.accountPassword,
+  });
+
+  @override
+  List<Object?> get props => [student, accountEmail, accountPassword];
+}
+
 /// Student updated successfully
 class StudentUpdated extends StudentState {
   final StudentModel student;

@@ -10,6 +10,7 @@ import 'package:quran_gate_academy/features/auth/presentation/pages/register_pag
 import 'package:quran_gate_academy/features/auth/presentation/pages/unauthorized_page.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/pages/admin_dashboard_page.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/pages/teacher_dashboard_page.dart';
+import 'package:quran_gate_academy/features/dashboard/presentation/pages/student_dashboard_page.dart';
 import 'package:quran_gate_academy/features/schedule/presentation/pages/schedule_page.dart';
 import 'package:quran_gate_academy/features/students/presentation/pages/students_page.dart';
 import 'package:quran_gate_academy/features/students/presentation/pages/student_form_page.dart';
@@ -18,6 +19,11 @@ import 'package:quran_gate_academy/features/tasks/presentation/pages/tasks_page.
 import 'package:quran_gate_academy/features/sessions/presentation/pages/sessions_page.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/pages/session_form_page_enhanced.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/pages/teacher_sessions_page.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/pages/student_sessions_page.dart';
+import 'package:quran_gate_academy/features/learning_materials/presentation/pages/learning_materials_page.dart';
+import 'package:quran_gate_academy/features/learning_materials/presentation/pages/learning_material_detail_page.dart';
+import 'package:quran_gate_academy/features/learning_materials/presentation/pages/material_management_page.dart';
+import 'package:quran_gate_academy/features/profile/presentation/pages/student_profile_page.dart';
 import 'package:quran_gate_academy/features/teachers/presentation/pages/teachers_page.dart';
 import 'package:quran_gate_academy/features/teachers/presentation/pages/teacher_form_page.dart';
 import 'package:quran_gate_academy/features/availability/presentation/pages/availability_page.dart';
@@ -36,6 +42,8 @@ class AppRouter {
   static const String mySessionsRoute = '/my-sessions';
   static const String teachersRoute = '/teachers';
   static const String availabilityRoute = '/availability';
+  static const String learningMaterialsRoute = '/learning-materials';
+  static const String profileRoute = '/profile';
   static const String unauthorizedRoute = '/unauthorized';
 
   /// Create router with authentication and role-based guards
@@ -107,9 +115,13 @@ class AppRouter {
             // Return role-specific dashboard based on user role
             final authState = context.read<AuthCubit>().state;
             if (authState is AuthAuthenticated) {
-              return PermissionService.isAdmin(authState.user)
-                  ? const AdminDashboardPage()
-                  : const TeacherDashboardPage();
+              if (PermissionService.isAdmin(authState.user)) {
+                return const AdminDashboardPage();
+              } else if (PermissionService.isTeacher(authState.user)) {
+                return const TeacherDashboardPage();
+              } else if (PermissionService.isStudent(authState.user)) {
+                return const StudentDashboardPage();
+              }
             }
             // Fallback to login (should not happen due to redirect logic)
             return const LoginPage();
@@ -201,6 +213,13 @@ class AppRouter {
           },
         ),
 
+        // Materials Management (Admin only)
+        GoRoute(
+          path: '/materials/manage',
+          name: 'materials-manage',
+          builder: (context, state) => const MaterialManagementPage(),
+        ),
+
         // ============================================
         // Teacher-Only Routes
         // ============================================
@@ -212,11 +231,45 @@ class AppRouter {
           builder: (context, state) => const AvailabilityPage(),
         ),
 
-        // Teacher Sessions (Read-only view of assigned sessions)
+        // Sessions (Teacher or Student view based on role)
         GoRoute(
           path: mySessionsRoute,
           name: 'my-sessions',
-          builder: (context, state) => const TeacherSessionsPage(),
+          builder: (context, state) {
+            final authState = context.read<AuthCubit>().state;
+            if (authState is AuthAuthenticated) {
+              if (PermissionService.isStudent(authState.user)) {
+                return const StudentSessionsPage();
+              }
+            }
+            return const TeacherSessionsPage();
+          },
+        ),
+
+        // ============================================
+        // Student Routes
+        // ============================================
+
+        // Learning Materials
+        GoRoute(
+          path: learningMaterialsRoute,
+          name: 'learning-materials',
+          builder: (context, state) => const LearningMaterialsPage(),
+        ),
+        GoRoute(
+          path: '$learningMaterialsRoute/:id',
+          name: 'learning-material-detail',
+          builder: (context, state) {
+            final materialId = state.pathParameters['id'];
+            return LearningMaterialDetailPage(materialId: materialId!);
+          },
+        ),
+
+        // Student Profile
+        GoRoute(
+          path: profileRoute,
+          name: 'profile',
+          builder: (context, state) => const StudentProfilePage(),
         ),
 
         // ============================================

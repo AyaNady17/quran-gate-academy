@@ -14,6 +14,9 @@ class PermissionService {
   /// Check if user is a teacher
   static bool isTeacher(UserModel user) => user.role == AppConfig.roleTeacher;
 
+  /// Check if user is a student
+  static bool isStudent(UserModel user) => user.role == AppConfig.roleStudent;
+
   // ============================================
   // Route Permissions
   // ============================================
@@ -31,6 +34,16 @@ class PermissionService {
     '/policy',
   ];
 
+  /// Define routes accessible to students
+  static final List<String> _studentAllowedRoutes = [
+    AppRouter.dashboardRoute,
+    '/my-sessions', // Student sessions view
+    '/learning-materials', // Learning materials library
+    '/profile', // Student profile
+    '/chat',
+    '/policy',
+  ];
+
   /// Check if user can access a specific route
   static bool canAccessRoute(UserModel user, String route) {
     // Admins can access all routes
@@ -40,6 +53,14 @@ class PermissionService {
     if (isTeacher(user)) {
       // Check exact route or route prefix
       return _teacherAllowedRoutes.any((allowedRoute) {
+        return route == allowedRoute || route.startsWith('$allowedRoute/');
+      });
+    }
+
+    // Students can only access allowed routes
+    if (isStudent(user)) {
+      // Check exact route or route prefix
+      return _studentAllowedRoutes.any((allowedRoute) {
         return route == allowedRoute || route.startsWith('$allowedRoute/');
       });
     }
@@ -99,6 +120,27 @@ class PermissionService {
       isTeacher(user) || isAdmin(user);
 
   // ============================================
+  // Feature Permissions - Student
+  // ============================================
+
+  /// Can view own sessions
+  static bool canViewOwnSessions(UserModel user) =>
+      isStudent(user) || isTeacher(user) || isAdmin(user);
+
+  /// Can view learning materials
+  static bool canViewLearningMaterials(UserModel user) => true;
+
+  /// Can view own profile
+  static bool canViewOwnProfile(UserModel user) => true;
+
+  /// Students cannot edit session status
+  static bool canEditSessionStatus(UserModel user) =>
+      isTeacher(user) || isAdmin(user);
+
+  /// Students can only view, not create/edit/delete materials
+  static bool canManageLearningMaterials(UserModel user) => isAdmin(user);
+
+  // ============================================
   // Data Access Permissions
   // ============================================
 
@@ -130,12 +172,21 @@ class PermissionService {
   }
 
   /// Check if user can access a specific session
-  static bool canAccessSession(UserModel user, String sessionTeacherId) {
+  static bool canAccessSession(
+    UserModel user,
+    String sessionTeacherId, [
+    String? sessionStudentId,
+  ]) {
     // Admins can access any session
     if (isAdmin(user)) return true;
 
     // Teachers can only access their own sessions
     if (isTeacher(user)) return user.id == sessionTeacherId;
+
+    // Students can only access sessions where they are the student
+    if (isStudent(user) && user.linkedStudentId != null && sessionStudentId != null) {
+      return user.linkedStudentId == sessionStudentId;
+    }
 
     return false;
   }

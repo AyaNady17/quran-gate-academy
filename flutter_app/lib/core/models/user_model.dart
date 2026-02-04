@@ -1,13 +1,14 @@
 import 'package:equatable/equatable.dart';
 
-/// User model for teachers and admins
+/// User model for teachers, admins, and students
 class UserModel extends Equatable {
   final String id;
   final String userId;
   final String email;
   final String fullName;
-  final String role; // 'admin' or 'teacher'
+  final String role; // 'admin', 'teacher', or 'student'
   final String? phone;
+  final String? linkedStudentId; // Links to Student record for student users
   final double hourlyRate;
   final String? profilePicture;
   final String status; // 'active', 'inactive', 'suspended'
@@ -22,6 +23,7 @@ class UserModel extends Equatable {
     required this.fullName,
     required this.role,
     this.phone,
+    this.linkedStudentId,
     this.hourlyRate = 0,
     this.profilePicture,
     this.status = 'active',
@@ -38,6 +40,7 @@ class UserModel extends Equatable {
       fullName: json['fullName'] ?? '',
       role: json['role'] ?? 'teacher',
       phone: json['phone'],
+      linkedStudentId: json['linkedStudentId'],
       hourlyRate: (json['hourlyRate'] ?? 0).toDouble(),
       profilePicture: json['profilePicture'],
       status: json['status'] ?? 'active',
@@ -54,6 +57,7 @@ class UserModel extends Equatable {
       'fullName': fullName,
       'role': role,
       'phone': phone,
+      'linkedStudentId': linkedStudentId,
       'hourlyRate': hourlyRate,
       'profilePicture': profilePicture,
       'status': status,
@@ -70,6 +74,7 @@ class UserModel extends Equatable {
     String? fullName,
     String? role,
     String? phone,
+    String? linkedStudentId,
     double? hourlyRate,
     String? profilePicture,
     String? status,
@@ -84,6 +89,7 @@ class UserModel extends Equatable {
       fullName: fullName ?? this.fullName,
       role: role ?? this.role,
       phone: phone ?? this.phone,
+      linkedStudentId: linkedStudentId ?? this.linkedStudentId,
       hourlyRate: hourlyRate ?? this.hourlyRate,
       profilePicture: profilePicture ?? this.profilePicture,
       status: status ?? this.status,
@@ -101,6 +107,7 @@ class UserModel extends Equatable {
         fullName,
         role,
         phone,
+        linkedStudentId,
         hourlyRate,
         profilePicture,
         status,

@@ -10,11 +10,19 @@ import 'package:quran_gate_academy/features/availability/data/services/availabil
 import 'package:quran_gate_academy/features/availability/domain/repositories/availability_repository.dart';
 import 'package:quran_gate_academy/features/availability/presentation/cubit/availability_cubit.dart';
 import 'package:quran_gate_academy/features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import 'package:quran_gate_academy/features/dashboard/data/repositories/student_dashboard_repository_impl.dart';
 import 'package:quran_gate_academy/features/dashboard/data/services/dashboard_service.dart';
+import 'package:quran_gate_academy/features/dashboard/data/services/student_dashboard_service.dart';
 import 'package:quran_gate_academy/features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:quran_gate_academy/features/dashboard/domain/repositories/student_dashboard_repository.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/cubit/admin_dashboard_cubit.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:quran_gate_academy/features/dashboard/presentation/cubit/student_dashboard_cubit.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/cubit/teacher_dashboard_cubit.dart';
+import 'package:quran_gate_academy/features/learning_materials/data/repositories/learning_material_repository_impl.dart';
+import 'package:quran_gate_academy/features/learning_materials/data/services/learning_material_service.dart';
+import 'package:quran_gate_academy/features/learning_materials/domain/repositories/learning_material_repository.dart';
+import 'package:quran_gate_academy/features/learning_materials/presentation/cubit/learning_material_cubit.dart';
 import 'package:quran_gate_academy/features/schedule/data/repositories/schedule_repository_impl.dart';
 import 'package:quran_gate_academy/features/schedule/data/services/schedule_service.dart';
 import 'package:quran_gate_academy/features/schedule/domain/repositories/schedule_repository.dart';
@@ -75,6 +83,15 @@ Future<void> configureDependencies() async {
         databases: AppConfig.databases,
       ));
 
+  getIt.registerLazySingleton(() => StudentDashboardService(
+        databases: AppConfig.databases,
+      ));
+
+  getIt.registerLazySingleton(() => LearningMaterialService(
+        databases: AppConfig.databases,
+        storage: AppConfig.storage,
+      ));
+
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(authService: getIt()),
@@ -108,6 +125,14 @@ Future<void> configureDependencies() async {
     () => AvailabilityRepositoryImpl(availabilityService: getIt()),
   );
 
+  getIt.registerLazySingleton<StudentDashboardRepository>(
+    () => StudentDashboardRepositoryImpl(studentDashboardService: getIt()),
+  );
+
+  getIt.registerLazySingleton<LearningMaterialRepository>(
+    () => LearningMaterialRepositoryImpl(learningMaterialService: getIt()),
+  );
+
   // Cubits
   getIt.registerFactory(() => AuthCubit(authRepository: getIt()));
   getIt.registerFactory(() => DashboardCubit(dashboardRepository: getIt()));
@@ -119,6 +144,13 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => TeacherDashboardCubit(
         dashboardRepository: getIt(),
         studentRepository: getIt(),
+      ));
+  getIt.registerFactory(() => StudentDashboardCubit(
+        studentDashboardRepository: getIt(),
+        teacherRepository: getIt(),
+      ));
+  getIt.registerFactory(() => LearningMaterialCubit(
+        learningMaterialRepository: getIt(),
       ));
   getIt.registerFactory(() => ScheduleCubit(scheduleRepository: getIt()));
   getIt.registerFactory(() => StudentCubit(studentRepository: getIt()));

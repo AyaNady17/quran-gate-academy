@@ -32,6 +32,10 @@ class AppSidebar extends StatelessWidget {
   }
 
   Widget _buildSidebar(BuildContext context, bool isAdmin, bool isTeacher) {
+    final authState = context.read<AuthCubit>().state;
+    final isStudent = authState is AuthAuthenticated &&
+        PermissionService.isStudent(authState.user);
+
     return Container(
       width: 250,
       decoration: BoxDecoration(
@@ -149,6 +153,13 @@ class AppSidebar extends StatelessWidget {
                     isActive: currentRoute == AppRouter.teachersRoute,
                     onTap: () => context.go(AppRouter.teachersRoute),
                   ),
+                  _MenuItem(
+                    icon: Icons.upload_file_outlined,
+                    label: 'Materials',
+                    route: '/materials/manage',
+                    isActive: currentRoute == '/materials/manage',
+                    onTap: () => context.go('/materials/manage'),
+                  ),
                 ],
 
                 // Teacher-only menu items
@@ -166,6 +177,31 @@ class AppSidebar extends StatelessWidget {
                     route: AppRouter.availabilityRoute,
                     isActive: currentRoute == AppRouter.availabilityRoute,
                     onTap: () => context.go(AppRouter.availabilityRoute),
+                  ),
+                ],
+
+                // Student-only menu items
+                if (isStudent) ...[
+                  _MenuItem(
+                    icon: Icons.event_note_outlined,
+                    label: 'My Sessions',
+                    route: AppRouter.mySessionsRoute,
+                    isActive: currentRoute == AppRouter.mySessionsRoute,
+                    onTap: () => context.go(AppRouter.mySessionsRoute),
+                  ),
+                  _MenuItem(
+                    icon: Icons.school_outlined,
+                    label: 'Learning Materials',
+                    route: AppRouter.learningMaterialsRoute,
+                    isActive: currentRoute == AppRouter.learningMaterialsRoute,
+                    onTap: () => context.go(AppRouter.learningMaterialsRoute),
+                  ),
+                  _MenuItem(
+                    icon: Icons.person_outline,
+                    label: 'Profile',
+                    route: AppRouter.profileRoute,
+                    isActive: currentRoute == AppRouter.profileRoute,
+                    onTap: () => context.go(AppRouter.profileRoute),
                   ),
                 ],
 

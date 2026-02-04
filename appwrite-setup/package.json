@@ -1,0 +1,21 @@
+{
+  "name": "quran-gate-appwrite-setup",
+  "version": "1.0.0",
+  "description": "Appwrite database setup for Quran Gate Academy",
+  "main": "setup.js",
+  "scripts": {
+    "setup": "node setup.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "appwrite",
+    "quran",
+    "academy",
+    "setup"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-appwrite": "^11.0.0"
+  }
+}
