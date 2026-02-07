@@ -17,6 +17,10 @@ class AppConfig {
   static const String rescheduleRequestsCollectionId = 'reschedule_requests';
   static const String salaryRecordsCollectionId = 'salary_records';
   static const String tasksCollectionId = 'tasks';
+  static const String learningMaterialsCollectionId = 'learning_materials';
+
+  // Storage Bucket IDs
+  static const String storageBucketId = 'learning_materials';
 
   // Appwrite client instance
   static late Client client;
@@ -38,6 +42,7 @@ class AppConfig {
   // User Roles
   static const String roleAdmin = 'admin';
   static const String roleTeacher = 'teacher';
+  static const String roleStudent = 'student';
 
   // Session Statuses
   static const String sessionStatusScheduled = 'scheduled';
@@ -51,6 +56,17 @@ class AppConfig {
   static const String taskStatusInProgress = 'in_progress';
   static const String taskStatusCompleted = 'completed';
   static const String taskStatusOverdue = 'overdue';
+
+  // Material Types
+  static const String materialTypePdf = 'pdf';
+  static const String materialTypeVideo = 'video';
+  static const String materialTypeAudio = 'audio';
+  static const String materialTypeDocument = 'document';
+
+  // Material Statuses
+  static const String materialStatusPublished = 'published';
+  static const String materialStatusDraft = 'draft';
+  static const String materialStatusArchived = 'archived';
 
   // Days of Week
   static const List<String> daysOfWeek = [

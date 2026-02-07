@@ -21,6 +21,12 @@ import 'package:quran_gate_academy/features/sessions/presentation/pages/teacher_
 import 'package:quran_gate_academy/features/teachers/presentation/pages/teachers_page.dart';
 import 'package:quran_gate_academy/features/teachers/presentation/pages/teacher_form_page.dart';
 import 'package:quran_gate_academy/features/availability/presentation/pages/availability_page.dart';
+import 'package:quran_gate_academy/features/dashboard/presentation/pages/student_dashboard_page.dart';
+import 'package:quran_gate_academy/features/learning_materials/presentation/pages/material_management_page.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/pages/student_sessions_page.dart';
+import 'package:quran_gate_academy/features/learning_materials/presentation/pages/student_learning_materials_page.dart';
+import 'package:quran_gate_academy/features/learning_materials/presentation/pages/student_material_viewer_page.dart';
+import 'package:quran_gate_academy/features/profile/presentation/pages/student_profile_page.dart';
 
 /// Application routing configuration with role-based access control
 class AppRouter {
@@ -36,6 +42,9 @@ class AppRouter {
   static const String mySessionsRoute = '/my-sessions';
   static const String teachersRoute = '/teachers';
   static const String availabilityRoute = '/availability';
+  static const String learningMaterialsRoute = '/learning-materials';
+  static const String materialManagementRoute = '/materials-management';
+  static const String profileRoute = '/profile';
   static const String unauthorizedRoute = '/unauthorized';
 
   /// Create router with authentication and role-based guards
@@ -107,9 +116,13 @@ class AppRouter {
             // Return role-specific dashboard based on user role
             final authState = context.read<AuthCubit>().state;
             if (authState is AuthAuthenticated) {
-              return PermissionService.isAdmin(authState.user)
-                  ? const AdminDashboardPage()
-                  : const TeacherDashboardPage();
+              if (PermissionService.isAdmin(authState.user)) {
+                return const AdminDashboardPage();
+              } else if (PermissionService.isStudent(authState.user)) {
+                return const StudentDashboardPage();
+              } else {
+                return const TeacherDashboardPage();
+              }
             }
             // Fallback to login (should not happen due to redirect logic)
             return const LoginPage();
@@ -201,6 +214,13 @@ class AppRouter {
           },
         ),
 
+        // Material Management (Admin)
+        GoRoute(
+          path: materialManagementRoute,
+          name: 'material-management',
+          builder: (context, state) => const MaterialManagementPage(),
+        ),
+
         // ============================================
         // Teacher-Only Routes
         // ============================================
@@ -212,11 +232,48 @@ class AppRouter {
           builder: (context, state) => const AvailabilityPage(),
         ),
 
-        // Teacher Sessions (Read-only view of assigned sessions)
+        // My Sessions - Role-based builder (Student or Teacher)
         GoRoute(
           path: mySessionsRoute,
           name: 'my-sessions',
-          builder: (context, state) => const TeacherSessionsPage(),
+          builder: (context, state) {
+            final authState = context.read<AuthCubit>().state;
+            if (authState is AuthAuthenticated) {
+              if (PermissionService.isStudent(authState.user)) {
+                return const StudentSessionsPage();
+              }
+            }
+            return const TeacherSessionsPage();
+          },
+        ),
+
+        // ============================================
+        // Student-Only Routes
+        // ============================================
+
+        // Learning Materials (Student view)
+        GoRoute(
+          path: learningMaterialsRoute,
+          name: 'learning-materials',
+          builder: (context, state) => const StudentLearningMaterialsPage(),
+          routes: [
+            // Material Viewer
+            GoRoute(
+              path: ':id',
+              name: 'material-viewer',
+              builder: (context, state) {
+                final materialId = state.pathParameters['id'];
+                return StudentMaterialViewerPage(materialId: materialId!);
+              },
+            ),
+          ],
+        ),
+
+        // Student Profile
+        GoRoute(
+          path: profileRoute,
+          name: 'profile',
+          builder: (context, state) => const StudentProfilePage(),
         ),
 
         // ============================================

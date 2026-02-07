@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:quran_gate_academy/core/config/app_config.dart';
 import 'package:quran_gate_academy/core/di/injection.dart';
 import 'package:quran_gate_academy/core/models/class_session_model.dart';
 import 'package:quran_gate_academy/core/theme/app_theme.dart';
@@ -9,6 +10,7 @@ import 'package:quran_gate_academy/features/auth/presentation/cubit/auth_cubit.d
 import 'package:quran_gate_academy/features/auth/presentation/cubit/auth_state.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_cubit.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_state.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Teacher Sessions Page - View and manage assigned sessions
 class TeacherSessionsPage extends StatelessWidget {
@@ -327,6 +329,55 @@ class _TeacherSessionsView extends StatelessWidget {
                 ),
               ],
             ),
+            if (session.meetingLink != null &&
+                session.meetingLink!.isNotEmpty &&
+                session.status == AppConfig.sessionStatusScheduled) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.video_call, color: Colors.blue.shade700),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Meeting Link Available',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                          Text(
+                            'Click to join the session',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => _launchMeetingLink(session.meetingLink),
+                      icon: const Icon(Icons.open_in_new, size: 18),
+                      label: const Text('Join'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (session.status == 'scheduled') ...[
               const SizedBox(height: 16),
               Row(
@@ -551,5 +602,14 @@ class _TeacherSessionsView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _launchMeetingLink(String? meetingLink) async {
+    if (meetingLink == null || meetingLink.isEmpty) return;
+
+    final uri = Uri.parse(meetingLink);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 }

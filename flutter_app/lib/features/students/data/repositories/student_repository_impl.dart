@@ -100,4 +100,23 @@ class StudentRepositoryImpl implements StudentRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<void> createUserAccount({
+    required String studentId,
+    required String email,
+    required String password,
+    required String fullName,
+  }) async {
+    try {
+      await studentService.createUserAccount(
+        studentId: studentId,
+        email: email,
+        password: password,
+        fullName: fullName,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

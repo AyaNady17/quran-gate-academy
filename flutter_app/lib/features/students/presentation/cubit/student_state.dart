@@ -56,6 +56,9 @@ class StudentUpdated extends StudentState {
 /// Student deleted successfully
 class StudentDeleted extends StudentState {}
 
+/// User account created for student successfully
+class StudentUserAccountCreated extends StudentState {}
+
 class StudentError extends StudentState {
   final String message;
 

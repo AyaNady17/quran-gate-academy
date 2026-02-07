@@ -38,4 +38,12 @@ abstract class StudentRepository {
 
   /// Delete a student (soft delete)
   Future<void> deleteStudent(String studentId);
+
+  /// Create user account for an existing student
+  Future<void> createUserAccount({
+    required String studentId,
+    required String email,
+    required String password,
+    required String fullName,
+  });
 }

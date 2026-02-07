@@ -4,8 +4,12 @@ import 'package:quran_gate_academy/core/config/app_config.dart';
 /// Student service - Handles student-related API calls
 class StudentService {
   final Databases databases;
+  final Account account;
 
-  StudentService({required this.databases});
+  StudentService({
+    required this.databases,
+    required this.account,
+  });
 
   /// Get all students with optional status filter
   Future<List<Map<String, dynamic>>> getAllStudents({
@@ -156,6 +160,59 @@ class StudentService {
         throw Exception('Student not found');
       }
       throw Exception('Failed to delete student: ${e.message}');
+    }
+  }
+
+  /// Create user account for an existing student
+  Future<Map<String, dynamic>> createUserAccount({
+    required String studentId,
+    required String email,
+    required String password,
+    required String fullName,
+  }) async {
+    try {
+      // 1. Create Appwrite auth account
+      final authUser = await account.create(
+        userId: ID.unique(),
+        email: email,
+        password: password,
+        name: fullName,
+      );
+
+      final authUserId = authUser.$id;
+
+      // 2. Create user document with role='student' and linkedStudentId
+      final userResponse = await databases.createDocument(
+        databaseId: AppConfig.appwriteDatabaseId,
+        collectionId: AppConfig.usersCollectionId,
+        documentId: ID.unique(),
+        data: {
+          'userId': authUserId,
+          'role': AppConfig.roleStudent,
+          'fullName': fullName,
+          'email': email,
+          'linkedStudentId': studentId,
+          'status': 'active',
+          'createdAt': DateTime.now().toIso8601String(),
+        },
+      );
+
+      final userDocId = userResponse.data['\$id'];
+
+      // 3. Update student document with userId (bidirectional link)
+      await databases.updateDocument(
+        databaseId: AppConfig.appwriteDatabaseId,
+        collectionId: AppConfig.studentsCollectionId,
+        documentId: studentId,
+        data: {
+          'userId': userDocId,
+          'updatedAt': DateTime.now().toIso8601String(),
+        },
+      );
+
+      return userResponse.data;
+    } on AppwriteException catch (e) {
+      throw Exception('Failed to create user account: ${e.message}');
     }
   }
 }

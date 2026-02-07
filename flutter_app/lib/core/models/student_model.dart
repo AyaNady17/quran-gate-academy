@@ -13,6 +13,7 @@ class StudentModel extends Equatable {
   final String? profilePicture;
   final String status; // 'active', 'inactive', 'graduated'
   final String? notes;
+  final String? userId; // Links Student to User record when account is created
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -28,6 +29,7 @@ class StudentModel extends Equatable {
     this.profilePicture,
     this.status = 'active',
     this.notes,
+    this.userId,
     required this.createdAt,
     this.updatedAt,
   });
@@ -45,6 +47,7 @@ class StudentModel extends Equatable {
       profilePicture: json['profilePicture'],
       status: json['status'] ?? 'active',
       notes: json['notes'],
+      userId: json['userId'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
     );
@@ -62,6 +65,7 @@ class StudentModel extends Equatable {
       'profilePicture': profilePicture,
       'status': status,
       'notes': notes,
+      'userId': userId,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
@@ -79,6 +83,7 @@ class StudentModel extends Equatable {
     String? profilePicture,
     String? status,
     String? notes,
+    String? userId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -94,6 +99,7 @@ class StudentModel extends Equatable {
       profilePicture: profilePicture ?? this.profilePicture,
       status: status ?? this.status,
       notes: notes ?? this.notes,
+      userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -112,6 +118,7 @@ class StudentModel extends Equatable {
         profilePicture,
         status,
         notes,
+        userId,
         createdAt,
         updatedAt,
       ];

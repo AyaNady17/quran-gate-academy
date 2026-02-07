@@ -3,10 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quran_gate_academy/core/di/injection.dart';
 import 'package:quran_gate_academy/core/models/student_model.dart';
+import 'package:quran_gate_academy/core/services/permission_service.dart';
 import 'package:quran_gate_academy/core/theme/app_theme.dart';
 import 'package:quran_gate_academy/core/widgets/app_sidebar.dart';
+import 'package:quran_gate_academy/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:quran_gate_academy/features/auth/presentation/cubit/auth_state.dart';
 import 'package:quran_gate_academy/features/students/presentation/cubit/student_cubit.dart';
 import 'package:quran_gate_academy/features/students/presentation/cubit/student_state.dart';
+import 'package:quran_gate_academy/features/students/presentation/widgets/create_student_account_dialog.dart';
 
 /// Students page - Manage students and view their information
 class StudentsPage extends StatelessWidget {
@@ -91,14 +95,24 @@ class _StudentsView extends StatelessWidget {
             tooltip: 'Refresh',
           ),
           const SizedBox(width: 8),
-          ElevatedButton.icon(
-            onPressed: () => context.go('/students/new'),
-            icon: const Icon(Icons.add),
-            label: const Text('Add Student'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-            ),
-          ),
+          // Only admins can add students
+          ...() {
+            final authState = context.read<AuthCubit>().state;
+            if (authState is AuthAuthenticated &&
+                PermissionService.canManageStudents(authState.user)) {
+              return [
+                ElevatedButton.icon(
+                  onPressed: () => context.go('/students/new'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Student'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                  ),
+                ),
+              ];
+            }
+            return <Widget>[];
+          }(),
         ],
       ),
     );
@@ -114,6 +128,9 @@ class _StudentsView extends StatelessWidget {
               backgroundColor: Colors.green,
             ),
           );
+          context.read<StudentCubit>().loadStudents();
+        } else if (state is StudentUserAccountCreated) {
+          // Reload students list when account is created
           context.read<StudentCubit>().loadStudents();
         } else if (state is StudentError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -275,21 +292,41 @@ class _StudentsView extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, size: 20),
-                              onPressed: () {
-                                context.go('/students/edit/${student.id}');
-                              },
-                              tooltip: 'Edit',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, size: 20),
-                              color: AppTheme.errorColor,
-                              onPressed: () {
-                                _confirmDelete(context, student);
-                              },
-                              tooltip: 'Delete',
-                            ),
+                            // Only admins can manage students
+                            ...() {
+                              final authState = context.read<AuthCubit>().state;
+                              if (authState is AuthAuthenticated &&
+                                  PermissionService.canManageStudents(authState.user)) {
+                                return [
+                                  // Create Account button (only if student doesn't have a user account)
+                                  if (student.userId == null)
+                                    IconButton(
+                                      icon: const Icon(Icons.person_add, size: 20),
+                                      color: Colors.green,
+                                      onPressed: () {
+                                        _showCreateAccountDialog(context, student);
+                                      },
+                                      tooltip: 'Create User Account',
+                                    ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, size: 20),
+                                    onPressed: () {
+                                      context.go('/students/edit/${student.id}');
+                                    },
+                                    tooltip: 'Edit',
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, size: 20),
+                                    color: AppTheme.errorColor,
+                                    onPressed: () {
+                                      _confirmDelete(context, student);
+                                    },
+                                    tooltip: 'Delete',
+                                  ),
+                                ];
+                              }
+                              return <Widget>[];
+                            }(),
                           ],
                         ),
                       ),
@@ -314,6 +351,21 @@ class _StudentsView extends StatelessWidget {
         return Colors.blue;
       default:
         return Colors.grey;
+    }
+  }
+
+  void _showCreateAccountDialog(BuildContext context, StudentModel student) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => BlocProvider.value(
+        value: context.read<StudentCubit>(),
+        child: CreateStudentAccountDialog(student: student),
+      ),
+    );
+
+    // Reload students list if account was created successfully
+    if (result == true && context.mounted) {
+      context.read<StudentCubit>().loadStudents();
     }
   }
 

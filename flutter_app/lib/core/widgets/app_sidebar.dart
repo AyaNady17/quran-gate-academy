@@ -149,6 +149,13 @@ class AppSidebar extends StatelessWidget {
                     isActive: currentRoute == AppRouter.teachersRoute,
                     onTap: () => context.go(AppRouter.teachersRoute),
                   ),
+                  _MenuItem(
+                    icon: Icons.upload_file_outlined,
+                    label: 'Learning Materials',
+                    route: AppRouter.materialManagementRoute,
+                    isActive: currentRoute == AppRouter.materialManagementRoute,
+                    onTap: () => context.go(AppRouter.materialManagementRoute),
+                  ),
                 ],
 
                 // Teacher-only menu items

@@ -111,4 +111,25 @@ class StudentCubit extends Cubit<StudentState> {
   Future<void> refreshStudents({String? status}) async {
     await loadStudents(status: status);
   }
+
+  /// Create user account for an existing student
+  Future<void> createUserAccount({
+    required String studentId,
+    required String email,
+    required String password,
+    required String fullName,
+  }) async {
+    emit(StudentLoading());
+    try {
+      await studentRepository.createUserAccount(
+        studentId: studentId,
+        email: email,
+        password: password,
+        fullName: fullName,
+      );
+      emit(StudentUserAccountCreated());
+    } catch (e) {
+      emit(StudentError('Failed to create user account: ${e.toString()}'));
+    }
+  }
 }

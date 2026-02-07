@@ -1,17 +1,18 @@
 import 'package:equatable/equatable.dart';
 
-/// User model for teachers and admins
+/// User model for teachers, admins, and students
 class UserModel extends Equatable {
   final String id;
   final String userId;
   final String email;
   final String fullName;
-  final String role; // 'admin' or 'teacher'
+  final String role; // 'admin', 'teacher', or 'student'
   final String? phone;
   final double hourlyRate;
   final String? profilePicture;
   final String status; // 'active', 'inactive', 'suspended'
   final String? specialization;
+  final String? linkedStudentId; // Links User to Student record for student role
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -26,6 +27,7 @@ class UserModel extends Equatable {
     this.profilePicture,
     this.status = 'active',
     this.specialization,
+    this.linkedStudentId,
     required this.createdAt,
     this.updatedAt,
   });
@@ -42,6 +44,7 @@ class UserModel extends Equatable {
       profilePicture: json['profilePicture'],
       status: json['status'] ?? 'active',
       specialization: json['specialization'],
+      linkedStudentId: json['linkedStudentId'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
     );
@@ -58,6 +61,7 @@ class UserModel extends Equatable {
       'profilePicture': profilePicture,
       'status': status,
       'specialization': specialization,
+      'linkedStudentId': linkedStudentId,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
@@ -74,6 +78,7 @@ class UserModel extends Equatable {
     String? profilePicture,
     String? status,
     String? specialization,
+    String? linkedStudentId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -88,6 +93,7 @@ class UserModel extends Equatable {
       profilePicture: profilePicture ?? this.profilePicture,
       status: status ?? this.status,
       specialization: specialization ?? this.specialization,
+      linkedStudentId: linkedStudentId ?? this.linkedStudentId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -105,6 +111,7 @@ class UserModel extends Equatable {
         profilePicture,
         status,
         specialization,
+        linkedStudentId,
         createdAt,
         updatedAt,
       ];
