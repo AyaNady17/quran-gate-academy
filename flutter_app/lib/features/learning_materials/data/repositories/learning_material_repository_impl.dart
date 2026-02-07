@@ -111,4 +111,74 @@ class LearningMaterialRepositoryImpl implements LearningMaterialRepository {
       throw Exception('Failed to get file download URL: $e');
     }
   }
+
+  @override
+  Future<LearningMaterialModel> createMaterial({
+    required String title,
+    required String type,
+    required List<int> fileBytes,
+    required String fileName,
+    required String uploadedBy,
+    String? description,
+    String? category,
+    String? courseId,
+  }) async {
+    try {
+      final materialData = await learningMaterialService.createMaterial(
+        title: title,
+        type: type,
+        fileBytes: fileBytes,
+        fileName: fileName,
+        uploadedBy: uploadedBy,
+        description: description,
+        category: category,
+        courseId: courseId,
+      );
+      return LearningMaterialModel.fromJson(materialData);
+    } catch (e) {
+      throw Exception('Failed to create material: $e');
+    }
+  }
+
+  @override
+  Future<LearningMaterialModel> updateMaterial({
+    required String materialId,
+    String? title,
+    String? description,
+    String? category,
+    String? courseId,
+    String? status,
+  }) async {
+    try {
+      final materialData = await learningMaterialService.updateMaterial(
+        materialId: materialId,
+        title: title,
+        description: description,
+        category: category,
+        courseId: courseId,
+        status: status,
+      );
+      return LearningMaterialModel.fromJson(materialData);
+    } catch (e) {
+      throw Exception('Failed to update material: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteMaterial(String materialId, String fileId) async {
+    try {
+      await learningMaterialService.deleteMaterial(materialId, fileId);
+    } catch (e) {
+      throw Exception('Failed to delete material: $e');
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAllCourses() async {
+    try {
+      return await learningMaterialService.getAllCourses();
+    } catch (e) {
+      throw Exception('Failed to get courses: $e');
+    }
+  }
 }
