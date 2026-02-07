@@ -132,6 +132,7 @@ class SessionService {
     double? salaryAmount,
     String? notes,
     String? meetingLink,
+    DateTime? enteredAt,
     DateTime? completedAt,
   }) async {
     try {
@@ -151,6 +152,7 @@ class SessionService {
       if (salaryAmount != null) data['salaryAmount'] = salaryAmount;
       if (notes != null) data['notes'] = notes;
       if (meetingLink != null) data['meetingLink'] = meetingLink;
+      if (enteredAt != null) data['enteredAt'] = enteredAt.toIso8601String();
       if (completedAt != null) data['completedAt'] = completedAt.toIso8601String();
 
       final response = await databases.updateDocument(

@@ -23,6 +23,10 @@ import 'package:quran_gate_academy/features/sessions/data/repositories/session_r
 import 'package:quran_gate_academy/features/sessions/data/services/session_service.dart';
 import 'package:quran_gate_academy/features/sessions/domain/repositories/session_repository.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_cubit.dart';
+import 'package:quran_gate_academy/features/sessions/data/repositories/session_report_repository_impl.dart';
+import 'package:quran_gate_academy/features/sessions/data/services/session_report_service.dart';
+import 'package:quran_gate_academy/features/sessions/domain/repositories/session_report_repository.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_report_cubit.dart';
 import 'package:quran_gate_academy/features/students/data/repositories/student_repository_impl.dart';
 import 'package:quran_gate_academy/features/students/data/services/student_service.dart';
 import 'package:quran_gate_academy/features/students/domain/repositories/student_repository.dart';
@@ -93,6 +97,10 @@ Future<void> configureDependencies() async {
         storage: AppConfig.storage,
       ));
 
+  getIt.registerLazySingleton(() => SessionReportService(
+        databases: AppConfig.databases,
+      ));
+
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(authService: getIt()),
@@ -134,6 +142,10 @@ Future<void> configureDependencies() async {
     () => LearningMaterialRepositoryImpl(learningMaterialService: getIt()),
   );
 
+  getIt.registerLazySingleton<SessionReportRepository>(
+    () => SessionReportRepositoryImpl(sessionReportService: getIt()),
+  );
+
   // Cubits
   getIt.registerFactory(() => AuthCubit(authRepository: getIt()));
   getIt.registerFactory(() => DashboardCubit(dashboardRepository: getIt()));
@@ -160,6 +172,10 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory(() => LearningMaterialCubit(
         learningMaterialRepository: getIt(),
+      ));
+
+  getIt.registerFactory(() => SessionReportCubit(
+        sessionReportRepository: getIt(),
       ));
 
   // SessionCubit with user parameter for RBAC

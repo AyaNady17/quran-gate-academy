@@ -106,6 +106,7 @@ class SessionRepositoryImpl implements SessionRepository {
     double? salaryAmount,
     String? notes,
     String? meetingLink,
+    DateTime? enteredAt,
     DateTime? completedAt,
   }) async {
     try {
@@ -123,6 +124,7 @@ class SessionRepositoryImpl implements SessionRepository {
         salaryAmount: salaryAmount,
         notes: notes,
         meetingLink: meetingLink,
+        enteredAt: enteredAt,
         completedAt: completedAt,
       );
 

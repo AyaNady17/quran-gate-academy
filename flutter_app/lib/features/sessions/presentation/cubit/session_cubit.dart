@@ -152,6 +152,7 @@ class SessionCubit extends Cubit<SessionState> {
     double? salaryAmount,
     String? notes,
     String? meetingLink,
+    DateTime? enteredAt,
     DateTime? completedAt,
   }) async {
     emit(SessionLoading());
@@ -170,6 +171,7 @@ class SessionCubit extends Cubit<SessionState> {
         salaryAmount: salaryAmount,
         notes: notes,
         meetingLink: meetingLink,
+        enteredAt: enteredAt,
         completedAt: completedAt,
       );
       emit(SessionUpdated(session));

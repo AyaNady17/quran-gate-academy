@@ -48,6 +48,7 @@ abstract class SessionRepository {
     double? salaryAmount,
     String? notes,
     String? meetingLink,
+    DateTime? enteredAt,
     DateTime? completedAt,
   });
 

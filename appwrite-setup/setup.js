@@ -234,6 +234,171 @@ async function updateStudentsCollection() {
 }
 
 /**
+ * Create Session Reports Collection
+ */
+async function createSessionReportsCollection() {
+  console.log('\n📊 Creating session_reports collection...');
+
+  const collectionId = 'session_reports';
+
+  await safeExecute(
+    () => databases.createCollection(
+      DATABASE_ID,
+      collectionId,
+      'Session Reports',
+      [
+        sdk.Permission.read(sdk.Role.any()),
+        sdk.Permission.create(sdk.Role.label('teacher')),
+        sdk.Permission.create(sdk.Role.label('admin')),
+        sdk.Permission.update(sdk.Role.label('teacher')),
+        sdk.Permission.update(sdk.Role.label('admin')),
+        sdk.Permission.delete(sdk.Role.label('admin'))
+      ],
+      false // documentSecurity
+    ),
+    'Failed to create session_reports collection',
+    'session_reports collection created'
+  );
+
+  // Session ID (link to class_sessions)
+  await safeExecute(
+    () => databases.createStringAttribute(DATABASE_ID, collectionId, 'sessionId', 255, true),
+    'Failed to add sessionId',
+    'sessionId attribute added'
+  );
+
+  // Student ID
+  await safeExecute(
+    () => databases.createStringAttribute(DATABASE_ID, collectionId, 'studentId', 255, true),
+    'Failed to add studentId',
+    'studentId attribute added'
+  );
+
+  // Teacher ID
+  await safeExecute(
+    () => databases.createStringAttribute(DATABASE_ID, collectionId, 'teacherId', 255, true),
+    'Failed to add teacherId',
+    'teacherId attribute added'
+  );
+
+  // Attendance status (attended/absent)
+  await safeExecute(
+    () => databases.createStringAttribute(DATABASE_ID, collectionId, 'attendance', 50, true),
+    'Failed to add attendance',
+    'attendance attribute added'
+  );
+
+  // Student performance (good/excellent) - only if attended
+  await safeExecute(
+    () => databases.createStringAttribute(DATABASE_ID, collectionId, 'performance', 50, false),
+    'Failed to add performance',
+    'performance attribute added'
+  );
+
+  // Session summary (title-style)
+  await safeExecute(
+    () => databases.createStringAttribute(DATABASE_ID, collectionId, 'summary', 500, false),
+    'Failed to add summary',
+    'summary attribute added'
+  );
+
+  // Homework
+  await safeExecute(
+    () => databases.createStringAttribute(DATABASE_ID, collectionId, 'homework', 2000, false),
+    'Failed to add homework',
+    'homework attribute added'
+  );
+
+  // Encouragement message
+  await safeExecute(
+    () => databases.createStringAttribute(DATABASE_ID, collectionId, 'encouragementMessage', 2000, false),
+    'Failed to add encouragementMessage',
+    'encouragementMessage attribute added'
+  );
+
+  // Session entered at (for late tracking)
+  await safeExecute(
+    () => databases.createDatetimeAttribute(DATABASE_ID, collectionId, 'sessionEnteredAt', false),
+    'Failed to add sessionEnteredAt',
+    'sessionEnteredAt attribute added'
+  );
+
+  // Session ended at
+  await safeExecute(
+    () => databases.createDatetimeAttribute(DATABASE_ID, collectionId, 'sessionEndedAt', false),
+    'Failed to add sessionEndedAt',
+    'sessionEndedAt attribute added'
+  );
+
+  // Was teacher late
+  await safeExecute(
+    () => databases.createBooleanAttribute(DATABASE_ID, collectionId, 'teacherLate', false),
+    'Failed to add teacherLate',
+    'teacherLate attribute added'
+  );
+
+  // Late duration in minutes
+  await safeExecute(
+    () => databases.createIntegerAttribute(DATABASE_ID, collectionId, 'lateDurationMinutes', false),
+    'Failed to add lateDurationMinutes',
+    'lateDurationMinutes attribute added'
+  );
+
+  // Created and updated timestamps
+  await safeExecute(
+    () => databases.createDatetimeAttribute(DATABASE_ID, collectionId, 'createdAt', true),
+    'Failed to add createdAt',
+    'createdAt attribute added'
+  );
+
+  await safeExecute(
+    () => databases.createDatetimeAttribute(DATABASE_ID, collectionId, 'updatedAt', true),
+    'Failed to add updatedAt',
+    'updatedAt attribute added'
+  );
+
+  console.log('⏳ Waiting for attributes to be available...');
+  await new Promise(resolve => setTimeout(resolve, 3000));
+
+  // Create indexes
+  await safeExecute(
+    () => databases.createIndex(DATABASE_ID, collectionId, 'sessionId_index', 'key', ['sessionId']),
+    'Failed to create sessionId index',
+    'sessionId index created'
+  );
+
+  await safeExecute(
+    () => databases.createIndex(DATABASE_ID, collectionId, 'studentId_index', 'key', ['studentId']),
+    'Failed to create studentId index',
+    'studentId index created'
+  );
+
+  await safeExecute(
+    () => databases.createIndex(DATABASE_ID, collectionId, 'teacherId_index', 'key', ['teacherId']),
+    'Failed to create teacherId index',
+    'teacherId index created'
+  );
+}
+
+/**
+ * Add enteredAt field to class_sessions collection
+ */
+async function updateClassSessionsCollection() {
+  console.log('\n📅 Updating class_sessions collection...');
+
+  await safeExecute(
+    () => databases.createDatetimeAttribute(
+      DATABASE_ID,
+      COLLECTIONS.CLASS_SESSIONS,
+      'enteredAt',
+      false // not required
+    ),
+    'Failed to add enteredAt to class_sessions',
+    'enteredAt attribute added to class_sessions collection'
+  );
+}
+
+/**
  * Create Storage Bucket for Learning Materials (if needed)
  */
 async function createStorageBucket() {
@@ -286,8 +451,10 @@ async function main() {
   try {
     // Create new collections and features
     await createLearningMaterialsCollection();
+    await createSessionReportsCollection();
     await updateUsersCollection();
     await updateStudentsCollection();
+    await updateClassSessionsCollection();
     await createStorageBucket();
 
     console.log('\n✨ Setup completed successfully!\n');

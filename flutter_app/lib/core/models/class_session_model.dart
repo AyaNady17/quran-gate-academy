@@ -20,6 +20,7 @@ class ClassSessionModel extends Equatable {
   final String? meetingLink;
   final String? createdBy;
   final String? rescheduleRequestId;
+  final DateTime? enteredAt; // When teacher clicked "Enter Class"
   final DateTime? completedAt;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -42,6 +43,7 @@ class ClassSessionModel extends Equatable {
     this.meetingLink,
     this.createdBy,
     this.rescheduleRequestId,
+    this.enteredAt,
     this.completedAt,
     required this.createdAt,
     this.updatedAt,
@@ -66,6 +68,9 @@ class ClassSessionModel extends Equatable {
       meetingLink: json['meetingLink'],
       createdBy: json['createdBy'],
       rescheduleRequestId: json['rescheduleRequestId'],
+      enteredAt: json['enteredAt'] != null
+          ? DateTime.parse(json['enteredAt'])
+          : null,
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'])
           : null,
@@ -93,6 +98,7 @@ class ClassSessionModel extends Equatable {
       'meetingLink': meetingLink,
       'createdBy': createdBy,
       'rescheduleRequestId': rescheduleRequestId,
+      'enteredAt': enteredAt?.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
@@ -117,6 +123,7 @@ class ClassSessionModel extends Equatable {
     String? meetingLink,
     String? createdBy,
     String? rescheduleRequestId,
+    DateTime? enteredAt,
     DateTime? completedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -139,6 +146,7 @@ class ClassSessionModel extends Equatable {
       meetingLink: meetingLink ?? this.meetingLink,
       createdBy: createdBy ?? this.createdBy,
       rescheduleRequestId: rescheduleRequestId ?? this.rescheduleRequestId,
+      enteredAt: enteredAt ?? this.enteredAt,
       completedAt: completedAt ?? this.completedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -164,6 +172,7 @@ class ClassSessionModel extends Equatable {
         meetingLink,
         createdBy,
         rescheduleRequestId,
+        enteredAt,
         completedAt,
         createdAt,
         updatedAt,

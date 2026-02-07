@@ -12,6 +12,8 @@ import 'package:quran_gate_academy/features/auth/presentation/cubit/auth_cubit.d
 import 'package:quran_gate_academy/features/auth/presentation/cubit/auth_state.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/cubit/student_dashboard_cubit.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/cubit/student_dashboard_state.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_report_cubit.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_report_state.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Student Dashboard Page - Shows personal statistics and sessions
@@ -20,15 +22,32 @@ class StudentDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        final cubit = getIt<StudentDashboardCubit>();
-        final authState = context.read<AuthCubit>().state;
-        if (authState is AuthAuthenticated && authState.user.linkedStudentId != null) {
-          cubit.loadDashboard(studentId: authState.user.linkedStudentId!);
-        }
-        return cubit;
-      },
+    final authState = context.read<AuthCubit>().state;
+    final linkedStudentId = authState is AuthAuthenticated
+        ? authState.user.linkedStudentId
+        : null;
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) {
+            final cubit = getIt<StudentDashboardCubit>();
+            if (linkedStudentId != null) {
+              cubit.loadDashboard(studentId: linkedStudentId);
+            }
+            return cubit;
+          },
+        ),
+        BlocProvider(
+          create: (context) {
+            final cubit = getIt<SessionReportCubit>();
+            if (linkedStudentId != null) {
+              cubit.loadReportsByStudent(linkedStudentId);
+            }
+            return cubit;
+          },
+        ),
+      ],
       child: const _StudentDashboardContent(),
     );
   }
@@ -211,6 +230,10 @@ class _StudentDashboardContentState extends State<_StudentDashboardContent> {
 
             // Upcoming Sessions
             _buildUpcomingSessions(context, state),
+            const SizedBox(height: 32),
+
+            // Recent Session Reports
+            _buildRecentReports(context),
           ],
         ),
       ),
@@ -383,6 +406,180 @@ class _StudentDashboardContentState extends State<_StudentDashboardContent> {
             else
               ...upcoming.map((session) => _buildSessionCard(context, session)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentReports(BuildContext context) {
+    return BlocBuilder<SessionReportCubit, SessionReportState>(
+      builder: (context, state) {
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Recent Session Reports',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    if (state is SessionReportsLoaded && state.reports.isNotEmpty)
+                      TextButton(
+                        onPressed: () => context.go('/my-reports'),
+                        child: const Text('View All'),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (state is SessionReportLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else if (state is SessionReportError)
+                  Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Center(
+                      child: Text(
+                        state.message,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  )
+                else if (state is SessionReportsLoaded)
+                  state.reports.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(
+                            child: Text(
+                              'No session reports yet',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      : Column(
+                          children: state.reports
+                              .take(5)
+                              .map((report) => _buildReportCard(context, report))
+                              .toList(),
+                        )
+                else
+                  const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(
+                      child: Text(
+                        'No session reports yet',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReportCard(BuildContext context, report) {
+    final dateFormat = DateFormat('MMM dd, yyyy');
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  dateFormat.format(report.createdAt),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                _buildAttendanceBadge(report.attendance),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (report.isAttended) ...[
+              Row(
+                children: [
+                  const Icon(Icons.star, size: 16, color: Colors.amber),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Performance: ${report.performance ?? 'N/A'}',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (report.summary != null && report.summary!.isNotEmpty) ...[
+                Text(
+                  'Summary:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  report.summary!.length > 100
+                      ? '${report.summary!.substring(0, 100)}...'
+                      : report.summary!,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ] else
+              Text(
+                'Student was absent',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                  fontSize: 13,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAttendanceBadge(String attendance) {
+    final isAttended = attendance == AppConfig.attendanceAttended;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: isAttended ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isAttended ? Colors.green : Colors.red,
+          width: 1,
+        ),
+      ),
+      child: Text(
+        isAttended ? 'Attended' : 'Absent',
+        style: TextStyle(
+          color: isAttended ? Colors.green : Colors.red,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

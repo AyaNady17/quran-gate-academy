@@ -24,6 +24,7 @@ import 'package:quran_gate_academy/features/availability/presentation/pages/avai
 import 'package:quran_gate_academy/features/dashboard/presentation/pages/student_dashboard_page.dart';
 import 'package:quran_gate_academy/features/learning_materials/presentation/pages/material_management_page.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/pages/student_sessions_page.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/pages/student_reports_page.dart';
 import 'package:quran_gate_academy/features/learning_materials/presentation/pages/student_learning_materials_page.dart';
 import 'package:quran_gate_academy/features/learning_materials/presentation/pages/student_material_viewer_page.dart';
 import 'package:quran_gate_academy/features/profile/presentation/pages/student_profile_page.dart';
@@ -40,6 +41,7 @@ class AppRouter {
   static const String tasksRoute = '/tasks';
   static const String sessionsRoute = '/sessions';
   static const String mySessionsRoute = '/my-sessions';
+  static const String myReportsRoute = '/my-reports';
   static const String teachersRoute = '/teachers';
   static const String availabilityRoute = '/availability';
   static const String learningMaterialsRoute = '/learning-materials';
@@ -250,6 +252,13 @@ class AppRouter {
         // ============================================
         // Student-Only Routes
         // ============================================
+
+        // My Reports - Student session reports
+        GoRoute(
+          path: myReportsRoute,
+          name: 'my-reports',
+          builder: (context, state) => const StudentReportsPage(),
+        ),
 
         // Learning Materials (Student view)
         GoRoute(

@@ -18,6 +18,7 @@ class AppConfig {
   static const String salaryRecordsCollectionId = 'salary_records';
   static const String tasksCollectionId = 'tasks';
   static const String learningMaterialsCollectionId = 'learning_materials';
+  static const String sessionReportsCollectionId = 'session_reports';
 
   // Storage Bucket IDs
   static const String storageBucketId = 'learning_materials';
@@ -50,6 +51,15 @@ class AppConfig {
   static const String sessionStatusAbsent = 'absent';
   static const String sessionStatusStudentCancel = 'student_cancel';
   static const String sessionStatusTeacherCancel = 'teacher_cancel';
+  static const String sessionStatusInProgress = 'in_progress'; // Teacher entered class
+
+  // Attendance Statuses
+  static const String attendanceAttended = 'attended';
+  static const String attendanceAbsent = 'absent';
+
+  // Performance Levels
+  static const String performanceGood = 'good';
+  static const String performanceExcellent = 'excellent';
 
   // Task Statuses
   static const String taskStatusPending = 'pending';
