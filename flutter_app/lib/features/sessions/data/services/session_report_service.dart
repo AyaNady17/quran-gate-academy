@@ -44,6 +44,7 @@ class SessionReportService {
         'createdAt': now.toIso8601String(),
         'updatedAt': now.toIso8601String(),
       },
+      permissions: [], // Explicitly use collection-level permissions only
     );
 
     return document.data;
