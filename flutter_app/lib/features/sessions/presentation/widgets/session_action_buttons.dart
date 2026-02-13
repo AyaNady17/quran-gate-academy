@@ -62,7 +62,8 @@ class SessionActionButtons extends StatelessWidget {
     if (canEnter) {
       // Show Enter Class button with urgency styling
       final isLate = minutesUntilSession < 0;
-      final isStartingSoon = minutesUntilSession >= 0 && minutesUntilSession <= 2;
+      final isStartingSoon =
+          minutesUntilSession >= 0 && minutesUntilSession <= 2;
 
       return compact
           ? ElevatedButton.icon(
@@ -71,11 +72,16 @@ class SessionActionButtons extends StatelessWidget {
                 isLate ? Icons.warning_rounded : Icons.login,
                 size: 16,
               ),
-              label: Text(isLate ? 'Late!' : isStartingSoon ? 'Start!' : 'Enter'),
+              label: Text(isLate
+                  ? 'Late!'
+                  : isStartingSoon
+                      ? 'Start!'
+                      : 'Enter'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: isLate ? Colors.orange : Colors.green,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
             )
           : SizedBox(
@@ -106,7 +112,8 @@ class SessionActionButtons extends StatelessWidget {
               label: const Text('Cancel'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
             )
           : SizedBox(
@@ -143,7 +150,8 @@ class SessionActionButtons extends StatelessWidget {
                   SizedBox(width: 8),
                   Text(
                     'Session Expired',
-                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Colors.red, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
