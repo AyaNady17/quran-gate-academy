@@ -65,7 +65,7 @@ class _SessionFormViewState extends State<_SessionFormView> {
   final _courseId = 'default-course'; // Placeholder until courses implemented
   String? _planId;
   DateTime _scheduledDate = DateTime.now();
-  final _scheduledTimeController = TextEditingController(text: '09:00');
+  TimeOfDay _scheduledTime = const TimeOfDay(hour: 9, minute: 0);
   final _durationController = TextEditingController(text: '60');
   final _salaryAmountController = TextEditingController(text: '0');
   final _notesController = TextEditingController();
@@ -140,7 +140,6 @@ class _SessionFormViewState extends State<_SessionFormView> {
 
   @override
   void dispose() {
-    _scheduledTimeController.dispose();
     _durationController.dispose();
     _salaryAmountController.dispose();
     _notesController.dispose();
@@ -381,20 +380,26 @@ class _SessionFormViewState extends State<_SessionFormView> {
                     const SizedBox(height: 16),
 
                     // Time Picker
-                    TextFormField(
-                      controller: _scheduledTimeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Scheduled Time (HH:mm) *',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.access_time),
-                        hintText: '09:00',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter scheduled time';
+                    InkWell(
+                      onTap: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: _scheduledTime,
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            _scheduledTime = picked;
+                          });
                         }
-                        return null;
                       },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Scheduled Time *',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.access_time),
+                        ),
+                        child: Text(_scheduledTime.format(context)),
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -511,7 +516,8 @@ class _SessionFormViewState extends State<_SessionFormView> {
     if (_formKey.currentState!.validate()) {
       final salaryAmount = double.tryParse(_salaryAmountController.text) ?? 0.0;
       final duration = int.parse(_durationController.text);
-      final scheduledTime = _scheduledTimeController.text;
+      // Format TimeOfDay to HH:mm string
+      final scheduledTime = '${_scheduledTime.hour.toString().padLeft(2, '0')}:${_scheduledTime.minute.toString().padLeft(2, '0')}';
       final notes = _notesController.text.trim();
       final meetingLink = _meetingLinkController.text.trim();
 

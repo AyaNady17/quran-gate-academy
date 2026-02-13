@@ -419,7 +419,8 @@ class _SessionFormViewState extends State<_SessionFormView> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                          onPressed: isLoading ? null : () => context.go('/sessions'),
+                          onPressed:
+                              isLoading ? null : () => context.go('/sessions'),
                           child: const Text('Cancel'),
                         ),
                         const SizedBox(width: 16),
@@ -443,7 +444,9 @@ class _SessionFormViewState extends State<_SessionFormView> {
                                     ),
                                   ),
                                 )
-                              : Text(isEditing ? 'Update Session' : 'Create Session'),
+                              : Text(isEditing
+                                  ? 'Update Session'
+                                  : 'Create Session'),
                         ),
                       ],
                     ),
@@ -487,7 +490,9 @@ class _SessionFormViewState extends State<_SessionFormView> {
               scheduledTime: _scheduledTimeController.text,
               duration: duration,
               salaryAmount: salaryAmount,
-              notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+              notes: _notesController.text.isNotEmpty
+                  ? _notesController.text
+                  : null,
               meetingLink: _meetingLinkController.text.isNotEmpty
                   ? _meetingLinkController.text
                   : null,
@@ -502,7 +507,9 @@ class _SessionFormViewState extends State<_SessionFormView> {
               scheduledTime: _scheduledTimeController.text,
               duration: duration,
               salaryAmount: salaryAmount,
-              notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+              notes: _notesController.text.isNotEmpty
+                  ? _notesController.text
+                  : null,
               meetingLink: _meetingLinkController.text.isNotEmpty
                   ? _meetingLinkController.text
                   : null,

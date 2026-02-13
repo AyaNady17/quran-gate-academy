@@ -260,7 +260,24 @@ class _TeacherSessionsView extends StatelessWidget {
 
   Widget _buildSessionCard(BuildContext context, ClassSessionModel session) {
     final dateFormat = DateFormat('MMM dd, yyyy');
-    final timeFormat = DateFormat('hh:mm a');
+
+    // Parse scheduledTime string (HH:mm) and format to 12-hour format with AM/PM
+    String formattedTime = session.scheduledTime;
+    try {
+      final timeParts = session.scheduledTime.split(':');
+      if (timeParts.length == 2) {
+        final hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+
+        // Convert to 12-hour format with AM/PM
+        final period = hour >= 12 ? 'PM' : 'AM';
+        final hour12 = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        formattedTime = '${hour12.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+      }
+    } catch (e) {
+      // If parsing fails, use the original time string
+      formattedTime = session.scheduledTime;
+    }
 
     return Card(
       elevation: 2,
@@ -311,7 +328,7 @@ class _TeacherSessionsView extends StatelessWidget {
                     size: 16, color: AppTheme.textSecondaryColor),
                 const SizedBox(width: 8),
                 Text(
-                  timeFormat.format(session.scheduledDate),
+                  formattedTime,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(width: 24),
@@ -406,7 +423,8 @@ class _TeacherSessionsView extends StatelessWidget {
     final now = DateTime.now();
     final sessionDateTime = _getSessionDateTime(session);
     final minutesUntilSession = sessionDateTime.difference(now).inMinutes;
-    final canEnter = minutesUntilSession <= 5 && minutesUntilSession >= -session.duration;
+    final canEnter =
+        minutesUntilSession <= 5 && minutesUntilSession >= -session.duration;
     final canCancel = minutesUntilSession > 0;
 
     return Column(
@@ -442,7 +460,8 @@ class _TeacherSessionsView extends StatelessWidget {
   }
 
   /// Build buttons when session is in progress
-  Widget _buildInProgressButtons(BuildContext context, ClassSessionModel session) {
+  Widget _buildInProgressButtons(
+      BuildContext context, ClassSessionModel session) {
     return Row(
       children: [
         Expanded(
@@ -484,24 +503,25 @@ class _TeacherSessionsView extends StatelessWidget {
   }
 
   /// Enter class - updates status to in_progress and stores enteredAt timestamp
-  Future<void> _enterClass(BuildContext context, ClassSessionModel session) async {
+  Future<void> _enterClass(
+      BuildContext context, ClassSessionModel session) async {
     final now = DateTime.now();
     final sessionDateTime = _getSessionDateTime(session);
     final minutesLate = now.difference(sessionDateTime).inMinutes;
     final isLate = minutesLate > 5;
 
     context.read<SessionCubit>().updateSession(
-      sessionId: session.id,
-      status: AppConfig.sessionStatusInProgress,
-      enteredAt: now, // Store when teacher entered
-    );
+          sessionId: session.id,
+          status: AppConfig.sessionStatusInProgress,
+          enteredAt: now, // Store when teacher entered
+        );
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(isLate
-            ? 'Class entered (${minutesLate} minutes late)'
-            : 'Class entered successfully'),
+              ? 'Class entered (${minutesLate} minutes late)'
+              : 'Class entered successfully'),
           backgroundColor: isLate ? Colors.orange : Colors.green,
         ),
       );
@@ -509,7 +529,8 @@ class _TeacherSessionsView extends StatelessWidget {
   }
 
   /// Show session report dialog
-  Future<void> _showSessionReportDialog(BuildContext context, ClassSessionModel session) async {
+  Future<void> _showSessionReportDialog(
+      BuildContext context, ClassSessionModel session) async {
     final authState = context.read<AuthCubit>().state;
     if (authState is! AuthAuthenticated) {
       if (context.mounted) {
@@ -539,7 +560,8 @@ class _TeacherSessionsView extends StatelessWidget {
   }
 
   /// Send reminder to student
-  Future<void> _sendReminder(BuildContext context, ClassSessionModel session) async {
+  Future<void> _sendReminder(
+      BuildContext context, ClassSessionModel session) async {
     // TODO: Implement send reminder
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -550,7 +572,8 @@ class _TeacherSessionsView extends StatelessWidget {
   }
 
   /// Show cancel class dialog
-  Future<void> _showCancelDialog(BuildContext context, ClassSessionModel session) async {
+  Future<void> _showCancelDialog(
+      BuildContext context, ClassSessionModel session) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -574,9 +597,9 @@ class _TeacherSessionsView extends StatelessWidget {
 
     if (confirmed == true && context.mounted) {
       context.read<SessionCubit>().updateSession(
-        sessionId: session.id,
-        status: AppConfig.sessionStatusTeacherCancel,
-      );
+            sessionId: session.id,
+            status: AppConfig.sessionStatusTeacherCancel,
+          );
     }
   }
 
@@ -756,12 +779,23 @@ class _TeacherSessionsView extends StatelessWidget {
                       reasonController.text.trim().isEmpty
                   ? null
                   : () {
-                      // TODO: Implement reschedule request creation
+                      // Format TimeOfDay to HH:mm string
+                      final formattedTime =
+                          '${newTime!.hour.toString().padLeft(2, '0')}:${newTime!.minute.toString().padLeft(2, '0')}';
+
+                      // TODO: Implement reschedule request creation using:
+                      // - newDate (DateTime)
+                      // - formattedTime (String in HH:mm format)
+                      // - reasonController.text.trim()
+
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content:
-                              Text('Reschedule request feature coming soon'),
+                        SnackBar(
+                          content: Text(
+                              'Reschedule request feature coming soon\n'
+                              'New date: ${DateFormat('MMM dd, yyyy').format(newDate!)}\n'
+                              'New time: $formattedTime'),
                           backgroundColor: Colors.orange,
+                          duration: const Duration(seconds: 3),
                         ),
                       );
                       Navigator.of(dialogContext).pop();
