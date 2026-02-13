@@ -4,12 +4,16 @@ import 'package:intl/intl.dart';
 import 'package:quran_gate_academy/core/di/injection.dart';
 import 'package:quran_gate_academy/core/models/class_session_model.dart';
 import 'package:quran_gate_academy/core/theme/app_theme.dart';
+import 'package:quran_gate_academy/core/utils/time_utils.dart';
 import 'package:quran_gate_academy/core/widgets/app_sidebar.dart';
 import 'package:quran_gate_academy/core/widgets/stat_card.dart';
 import 'package:quran_gate_academy/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:quran_gate_academy/features/auth/presentation/cubit/auth_state.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/cubit/teacher_dashboard_cubit.dart';
 import 'package:quran_gate_academy/features/dashboard/presentation/cubit/teacher_dashboard_state.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_cubit.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_report_cubit.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/widgets/session_action_buttons.dart';
 
 /// Teacher Dashboard Page - Shows personal statistics and sessions
 class TeacherDashboardPage extends StatelessWidget {
@@ -17,15 +21,29 @@ class TeacherDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        final cubit = getIt<TeacherDashboardCubit>();
-        final authState = context.read<AuthCubit>().state;
-        if (authState is AuthAuthenticated) {
-          cubit.loadDashboard(teacherId: authState.user.id);
-        }
-        return cubit;
-      },
+    final authState = context.read<AuthCubit>().state;
+    if (authState is! AuthAuthenticated) {
+      return const Scaffold(
+        body: Center(child: Text('Not authenticated')),
+      );
+    }
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) {
+            final cubit = getIt<TeacherDashboardCubit>();
+            cubit.loadDashboard(teacherId: authState.user.id);
+            return cubit;
+          },
+        ),
+        BlocProvider(
+          create: (context) => getIt<SessionCubit>(param1: authState.user),
+        ),
+        BlocProvider(
+          create: (context) => getIt<SessionReportCubit>(),
+        ),
+      ],
       child: const _TeacherDashboardContent(),
     );
   }
@@ -479,7 +497,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                     final session = entry.value;
                     return DataRow(cells: [
                       DataCell(Text(index.toString())),
-                      DataCell(Text(session.scheduledTime)),
+                      DataCell(Text(TimeUtils.formatTo12Hour(session.scheduledTime))),
                       DataCell(Text(session.studentName ?? session.studentId)),
                       DataCell(Text(session.courseId)),
                       DataCell(_buildStatusChip(session.status)),
@@ -492,16 +510,18 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                         ),
                       ),
                       DataCell(
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.more_vert),
-                              onPressed: () {
-                                // TODO: Show action menu
-                              },
-                            ),
-                          ],
+                        SessionActionButtons(
+                          session: session,
+                          compact: true,
+                          onSessionUpdated: () {
+                            // Refresh dashboard after action
+                            final authState = context.read<AuthCubit>().state;
+                            if (authState is AuthAuthenticated) {
+                              context.read<TeacherDashboardCubit>().refreshDashboard(
+                                    teacherId: authState.user.id,
+                                  );
+                            }
+                          },
                         ),
                       ),
                     ]);

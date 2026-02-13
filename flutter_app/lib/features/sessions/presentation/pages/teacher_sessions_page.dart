@@ -11,7 +11,7 @@ import 'package:quran_gate_academy/features/auth/presentation/cubit/auth_state.d
 import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_cubit.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_report_cubit.dart';
 import 'package:quran_gate_academy/features/sessions/presentation/cubit/session_state.dart';
-import 'package:quran_gate_academy/features/sessions/presentation/widgets/session_report_dialog.dart';
+import 'package:quran_gate_academy/features/sessions/presentation/widgets/session_action_buttons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Teacher Sessions Page - View and manage assigned sessions
@@ -405,202 +405,20 @@ class _TeacherSessionsView extends StatelessWidget {
               ),
             ],
             // Time-based action buttons
-            if (session.status == 'scheduled') ...[
+            if (session.status == 'scheduled' ||
+                session.status == AppConfig.sessionStatusInProgress) ...[
               const SizedBox(height: 16),
-              _buildActionButtons(context, session),
-            ] else if (session.status == AppConfig.sessionStatusInProgress) ...[
-              const SizedBox(height: 16),
-              _buildInProgressButtons(context, session),
+              SessionActionButtons(
+                session: session,
+                onSessionUpdated: () {
+                  context.read<SessionCubit>().loadSessions();
+                },
+              ),
             ],
           ],
         ),
       ),
     );
-  }
-
-  /// Build action buttons based on session time
-  Widget _buildActionButtons(BuildContext context, ClassSessionModel session) {
-    final now = DateTime.now();
-    final sessionDateTime = _getSessionDateTime(session);
-    final minutesUntilSession = sessionDateTime.difference(now).inMinutes;
-    final canEnter =
-        minutesUntilSession <= 5 && minutesUntilSession >= -session.duration;
-    final canCancel = minutesUntilSession > 0;
-
-    return Column(
-      children: [
-        if (canEnter)
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _enterClass(context, session),
-              icon: const Icon(Icons.login),
-              label: const Text('Enter Class'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ),
-        if (canCancel && !canEnter) ...[
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _showCancelDialog(context, session),
-              icon: const Icon(Icons.cancel),
-              label: const Text('Cancel Class'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  /// Build buttons when session is in progress
-  Widget _buildInProgressButtons(
-      BuildContext context, ClassSessionModel session) {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () => _showSessionReportDialog(context, session),
-            icon: const Icon(Icons.stop),
-            label: const Text('End Class'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => _sendReminder(context, session),
-            icon: const Icon(Icons.notifications),
-            label: const Text('Send Reminder'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Get session date and time as DateTime
-  DateTime _getSessionDateTime(ClassSessionModel session) {
-    final timeParts = session.scheduledTime.split(':');
-    final hour = int.parse(timeParts[0]);
-    final minute = int.parse(timeParts[1]);
-
-    return DateTime(
-      session.scheduledDate.year,
-      session.scheduledDate.month,
-      session.scheduledDate.day,
-      hour,
-      minute,
-    );
-  }
-
-  /// Enter class - updates status to in_progress and stores enteredAt timestamp
-  Future<void> _enterClass(
-      BuildContext context, ClassSessionModel session) async {
-    final now = DateTime.now();
-    final sessionDateTime = _getSessionDateTime(session);
-    final minutesLate = now.difference(sessionDateTime).inMinutes;
-    final isLate = minutesLate > 5;
-
-    context.read<SessionCubit>().updateSession(
-          sessionId: session.id,
-          status: AppConfig.sessionStatusInProgress,
-          enteredAt: now, // Store when teacher entered
-        );
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isLate
-              ? 'Class entered (${minutesLate} minutes late)'
-              : 'Class entered successfully'),
-          backgroundColor: isLate ? Colors.orange : Colors.green,
-        ),
-      );
-    }
-  }
-
-  /// Show session report dialog
-  Future<void> _showSessionReportDialog(
-      BuildContext context, ClassSessionModel session) async {
-    final authState = context.read<AuthCubit>().state;
-    if (authState is! AuthAuthenticated) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Authentication required'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      return;
-    }
-
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => SessionReportDialog(
-        session: session,
-        teacherId: authState.user.id,
-      ),
-    );
-
-    if (result == true && context.mounted) {
-      // Report created successfully, refresh sessions
-      context.read<SessionCubit>().loadSessions();
-    }
-  }
-
-  /// Send reminder to student
-  Future<void> _sendReminder(
-      BuildContext context, ClassSessionModel session) async {
-    // TODO: Implement send reminder
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Reminder sent to student'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  /// Show cancel class dialog
-  Future<void> _showCancelDialog(
-      BuildContext context, ClassSessionModel session) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Cancel Class'),
-        content: const Text('Are you sure you want to cancel this class?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('No'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            child: const Text('Yes, Cancel'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      context.read<SessionCubit>().updateSession(
-            sessionId: session.id,
-            status: AppConfig.sessionStatusTeacherCancel,
-          );
-    }
   }
 
   Widget _buildStatusChip(String status) {
